@@ -1,0 +1,1025 @@
+[
+  {
+    "platform": "bangumi",
+    "name": "nested BBCode and blog photos",
+    "url": "https://bgm.tv/blog/123",
+    "routes": [
+      {
+        "url": "/p1/blogs/123$",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"title\":\"Fixture title\",\"content\":\"[b]Fixture [i]body[/i][/b][img]https://media.example.com/photo.jpg[/img]\",\"user\":{\"id\":1,\"username\":\"ada\",\"nickname\":\"Ada Lovelace\",\"avatar\":{\"large\":\"https://media.example.com/avatar.jpg\"}}}"
+      },
+      {
+        "url": "/blogs/123/photos",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"data\":[{\"target\":\"extra.jpg\"}]}"
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "media.length": 2,
+      "media.0.variants.0.url": "https://media.example.com/photo.jpg",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    },
+    "contains": {
+      "markdown": "**Fixture *body***"
+    }
+  },
+  {
+    "platform": "bilibili",
+    "name": "WBI video and audio tracks",
+    "url": "https://www.bilibili.com/video/BV1234567890",
+    "routes": [
+      {
+        "url": "/x/web-interface/view",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"code\":0,\"data\":{\"bvid\":\"BV1234567890\",\"title\":\"Fixture video\",\"desc\":\"Fixture body\",\"owner\":{\"mid\":1,\"name\":\"Ada Lovelace\",\"face\":\"https://media.example.com/avatar.jpg\"},\"pages\":[{\"cid\":456,\"part\":\"Part one\"}]}}"
+      },
+      {
+        "url": "/x/web-interface/nav",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"code\":-101,\"data\":{\"wbi_img\":{\"img_url\":\"https://i.example.com/7cd084941338484aae1ad9425b84077c.png\",\"sub_url\":\"https://i.example.com/4932caff0ff746eab6f01bf08b70ac45.png\"}}}"
+      },
+      {
+        "url": "/x/player/wbi/playurl.*w_rid=[0-9a-f]{32}",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"code\":0,\"data\":{\"dash\":{\"duration\":4,\"video\":[{\"baseUrl\":\"https://media.example.com/video.mp4\",\"width\":1920,\"height\":1080,\"mimeType\":\"video/mp4\",\"backupUrl\":[\"https://media.example.com/video.mp4?backup=1\"]}],\"audio\":[{\"base_url\":\"https://media.example.com/audio.m4a\",\"mime_type\":\"audio/mp4\"}]}}}"
+      }
+    ],
+    "expected": {
+      "title": "Fixture video",
+      "media.length": 2,
+      "media.0.variants.0.hasAudio": false,
+      "media.1.kind": "audio",
+      "media.1.variants.0.hasVideo": false,
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": null
+    }
+  },
+  {
+    "platform": "bilibili",
+    "name": "empty WBI media retries legacy API",
+    "url": "https://www.bilibili.com/video/BV1234567890",
+    "routes": [
+      {
+        "url": "/x/web-interface/view",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"code\":0,\"data\":{\"bvid\":\"BV1234567890\",\"title\":\"Fixture video\",\"desc\":\"Fixture body\",\"owner\":{\"name\":\"Ada\"},\"pages\":[{\"cid\":456,\"part\":\"Part one\"}]}}"
+      },
+      {
+        "url": "/x/web-interface/nav",
+        "method": "GET",
+        "status": 403,
+        "body": "{}"
+      },
+      {
+        "url": "/x/player/playurl",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"code\":0,\"data\":{\"dash\":{\"duration\":4,\"video\":[{\"baseUrl\":\"https://media.example.com/video.mp4\",\"width\":1920,\"height\":1080,\"mimeType\":\"video/mp4\",\"backupUrl\":[\"https://media.example.com/video.mp4?backup=1\"]}],\"audio\":[{\"base_url\":\"https://media.example.com/audio.m4a\",\"mime_type\":\"audio/mp4\"}]}}}"
+      }
+    ],
+    "expected": {
+      "media.length": 2,
+      "attempts.0.stage": "wbi-dash-api"
+    }
+  },
+  {
+    "platform": "bilibili",
+    "name": "opus live photo",
+    "url": "https://www.bilibili.com/opus/123",
+    "routes": [
+      {
+        "url": "/finger/spi",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"code\":0,\"data\":{\"b_3\":\"test\"}}"
+      },
+      {
+        "url": "/web-dynamic/v1/detail",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"code\":0,\"data\":{\"item\":{\"modules\":{\"module_dynamic\":{\"major\":{\"opus\":{\"title\":\"Fixture title\",\"summary\":{\"text\":\"Fixture body\"},\"pics\":[{\"url\":\"https://media.example.com/photo.jpg\",\"live_url\":\"https://media.example.com/video.mp4\"}]}}}}}}}"
+      }
+    ],
+    "expected": {
+      "media.0.kind": "livePhoto",
+      "media.0.companionVideo.variants.0.url": "https://media.example.com/video.mp4"
+    }
+  },
+  {
+    "platform": "coolapk",
+    "name": "article DOM",
+    "url": "https://www.coolapk.com/feed/123",
+    "routes": [
+      {
+        "url": "/feed/123",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><h1 class=\"message-title\">Fixture title</h1><div class=\"feed-message\"><p>Fixture body with <strong>important ideas</strong> and a <a href=\"/next\">reference</a>.</p><img src=\"https://media.example.com/photo.jpg\"></div><a class=\"user-name\" href=\"/u/1\">Ada Lovelace</a><span class=\"user-avatar\"><img src=\"https://media.example.com/avatar.jpg\"></span></body></html>"
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "media.0.variants.0.url": "https://media.example.com/photo.jpg",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": null
+    },
+    "contains": {
+      "text": "Fixture body",
+      "markdown": "https://www.coolapk.com/next"
+    }
+  },
+  {
+    "platform": "douban",
+    "name": "topic animation and timed video",
+    "url": "https://www.douban.com/group/topic/123",
+    "routes": [
+      {
+        "url": "/group/topic/123",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"title\":\"Fixture title\",\"content\":\"<p>Fixture body with <strong>important ideas</strong> and a <a href=\\\"/next\\\">reference</a>.</p>\",\"photos\":[{\"image\":{\"is_animated\":true,\"video\":{\"url\":\"https://media.example.com/video.mp4\"},\"normal\":{\"url\":\"https://media.example.com/photo.jpg\"}}}],\"video_info\":{\"video_url\":\"https://media.example.com/video.mp4?main\",\"duration\":\"01:02\",\"cover_url\":\"https://media.example.com/photo.jpg\"},\"author\":{\"id\":\"1\",\"uid\":\"ada\",\"name\":\"Ada Lovelace\",\"avatar\":\"https://media.example.com/avatar.jpg\"}}"
+      }
+    ],
+    "expected": {
+      "media.0.kind": "animation",
+      "media.1.variants.0.durationMs": 62000,
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "douyin",
+    "name": "web signed detail",
+    "url": "https://www.douyin.com/video/123",
+    "routes": [
+      {
+        "url": "/aweme/v1/web/aweme/detail/.*a_bogus=",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"aweme_detail\":{\"aweme_id\":\"123\",\"desc\":\"Fixture video\",\"video\":{\"play_addr\":{\"url_list\":[\"https://media.example.com/video.mp4\"],\"width\":1920,\"height\":1080},\"duration\":4000},\"author\":{\"uid\":\"1\",\"unique_id\":\"ada\",\"nickname\":\"Ada Lovelace\",\"avatar_larger\":{\"url_list\":[\"https://media.example.com/avatar.jpg\"]}}}}"
+      }
+    ],
+    "expected": {
+      "text": "Fixture video",
+      "media.0.variants.0.url": "https://media.example.com/video.mp4",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "douyin",
+    "name": "mobile registration signature and Story redirect",
+    "url": "https://www.douyin.com/video/123",
+    "routes": [
+      {
+        "url": "/aweme/v1/web/aweme/detail/",
+        "method": "GET",
+        "status": 200,
+        "body": "{}"
+      },
+      {
+        "url": "iesdouyin.com/share/video/123",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body>unavailable</body></html>"
+      },
+      {
+        "url": "www.douyin.com/video/123",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body>unavailable</body></html>"
+      },
+      {
+        "url": "/service/2/device_register/",
+        "method": "POST",
+        "status": 200,
+        "body": "{\"device_id_str\":\"1234567890123456789\",\"install_id_str\":\"9876543210123456789\"}",
+        "requestHeaders": {
+          "x-gorgon": "8404",
+          "x-argus": ""
+        }
+      },
+      {
+        "url": "api.amemv.com/aweme/v1/aweme/detail/",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"aweme_detail\":{\"aweme_id\":\"123\",\"desc\":\"Fixture video\",\"video\":{\"play_addr\":{\"uri\":\"story123\",\"url_list\":[\"https://media.example.com/video.mp4\"]},\"duration\":4000},\"is_story\":true}}",
+        "requestHeaders": {
+          "x-gorgon": "8404"
+        }
+      },
+      {
+        "url": "/aweme/v1/play/.*ratio=default",
+        "method": "HEAD",
+        "status": 302,
+        "body": "",
+        "headers": {
+          "location": [
+            "https://media.example.com/video.mp4?ratio=default"
+          ]
+        }
+      },
+      {
+        "url": "media.example.com/video.mp4\\?ratio=default",
+        "method": "HEAD",
+        "status": 200,
+        "body": "",
+        "headers": {
+          "content-length": [
+            "200"
+          ]
+        }
+      },
+      {
+        "url": "/aweme/v1/play/.*ratio=1080p",
+        "method": "HEAD",
+        "status": 302,
+        "body": "",
+        "headers": {
+          "location": [
+            "https://media.example.com/video.mp4?ratio=1080p"
+          ]
+        }
+      },
+      {
+        "url": "media.example.com/video.mp4\\?ratio=1080p",
+        "method": "HEAD",
+        "status": 200,
+        "body": "",
+        "headers": {
+          "content-length": [
+            "200"
+          ]
+        }
+      },
+      {
+        "url": "/aweme/v1/play/.*ratio=720p",
+        "method": "HEAD",
+        "status": 302,
+        "body": "",
+        "headers": {
+          "location": [
+            "https://media.example.com/video.mp4?ratio=720p"
+          ]
+        }
+      },
+      {
+        "url": "media.example.com/video.mp4\\?ratio=720p",
+        "method": "HEAD",
+        "status": 200,
+        "body": "",
+        "headers": {
+          "content-length": [
+            "200"
+          ]
+        }
+      },
+      {
+        "url": "/aweme/v1/play/.*ratio=540p",
+        "method": "HEAD",
+        "status": 302,
+        "body": "",
+        "headers": {
+          "location": [
+            "https://media.example.com/video.mp4?ratio=540p"
+          ]
+        }
+      },
+      {
+        "url": "media.example.com/video.mp4\\?ratio=540p",
+        "method": "HEAD",
+        "status": 200,
+        "body": "",
+        "headers": {
+          "content-length": [
+            "200"
+          ]
+        }
+      },
+      {
+        "url": "/aweme/v1/play/.*ratio=480p",
+        "method": "HEAD",
+        "status": 302,
+        "body": "",
+        "headers": {
+          "location": [
+            "https://media.example.com/video.mp4?ratio=480p"
+          ]
+        }
+      },
+      {
+        "url": "media.example.com/video.mp4\\?ratio=480p",
+        "method": "HEAD",
+        "status": 200,
+        "body": "",
+        "headers": {
+          "content-length": [
+            "200"
+          ]
+        }
+      }
+    ],
+    "expected": {
+      "media.0.variants.0.url": "https://media.example.com/video.mp4?ratio=default",
+      "attempts.0.stage": "web-api"
+    }
+  },
+  {
+    "platform": "facebook",
+    "name": "target ID excludes recommended video and splits DASH",
+    "url": "https://www.facebook.com/watch/?v=123",
+    "routes": [
+      {
+        "url": "facebook.com/watch",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script type=\"application/json\">[{\"id\":\"999\",\"playable_url\":\"https://media.example.com/wrong.mp4\"},{\"id\":\"123\",\"owner\":{\"id\":\"1\",\"username\":\"ada\",\"name\":\"Ada Lovelace\",\"profile_picture\":{\"uri\":\"https://media.example.com/avatar.jpg\"}},\"name\":\"Fixture video\",\"dash_manifest\":\"<MPD><BaseURL>https://media.example.com/</BaseURL><Period id=\\\"p\\\"><AdaptationSet mimeType=\\\"video/mp4\\\" codecs=\\\"avc1\\\"><Representation height=\\\"1080\\\"><BaseURL>video.mp4</BaseURL><SegmentBase indexRange=\\\"0-10\\\"/></Representation></AdaptationSet><AdaptationSet mimeType=\\\"audio/mp4\\\"><Representation><BaseURL>audio.m4a</BaseURL></Representation></AdaptationSet></Period></MPD>\"}]</script></body></html>"
+      }
+    ],
+    "expected": {
+      "title": "Fixture video",
+      "media.length": 2,
+      "media.0.variants.0.url": "https://media.example.com/video.mp4",
+      "media.1.variants.0.url": "https://media.example.com/audio.m4a",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "facebook",
+    "name": "only recommendation is unavailable",
+    "url": "https://www.facebook.com/watch/?v=123",
+    "routes": [
+      {
+        "url": "facebook.com/watch",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script type=\"application/json\">{\"id\":\"999\",\"playable_url\":\"https://media.example.com/wrong.mp4\"}</script></body></html>"
+      }
+    ],
+    "expected": {},
+    "error": "contentUnavailable"
+  },
+  {
+    "platform": "instagram",
+    "name": "carousel mixed media",
+    "url": "https://www.instagram.com/p/ABC/",
+    "routes": [
+      {
+        "url": "instagram.com/$",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body>csrf</body></html>",
+        "headers": {
+          "set-cookie": [
+            "csrftoken=fixture; Path=/; Secure"
+          ]
+        }
+      },
+      {
+        "url": "/graphql/query",
+        "method": "POST",
+        "status": 200,
+        "body": "{\"data\":{\"xdt_shortcode_media\":{\"id\":\"123\",\"caption\":\"Fixture body\",\"edge_sidecar_to_children\":{\"edges\":[{\"node\":{\"display_url\":\"https://media.example.com/photo.jpg\"}},{\"node\":{\"video_url\":\"https://media.example.com/video.mp4\",\"display_url\":\"https://media.example.com/photo.jpg\"}}]},\"owner\":{\"id\":\"1\",\"username\":\"ada\",\"full_name\":\"Ada Lovelace\",\"profile_pic_url\":\"https://media.example.com/avatar.jpg\"}}}}",
+        "requestHeaders": {
+          "x-csrftoken": "fixture"
+        },
+        "bodyContains": "doc_id="
+      }
+    ],
+    "expected": {
+      "text": "Fixture body",
+      "media.0.kind": "image",
+      "media.1.kind": "video",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "kuaishou",
+    "name": "atlas and multi-codec manifest",
+    "url": "https://www.kuaishou.com/short-video/abc",
+    "routes": [
+      {
+        "url": "/short-video/abc",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script>window.__APOLLO_STATE__={\"defaultClient\":{\"VisionVideoDetailPhoto:abc\":{\"author\":{\"id\":\"1\",\"kwaiId\":\"ada\",\"name\":\"Ada Lovelace\",\"headerUrl\":\"https://media.example.com/avatar.jpg\"},\"caption\":\"Fixture title\",\"ext_params\":{\"atlas\":{\"cdn\":\"media.example.com\",\"list\":[\"photo.jpg\"]}},\"manifest\":{\"representation\":[{\"url\":\"https://media.example.com/video.mp4\",\"codecs\":\"avc1\",\"height\":1080}]}}}};</script></body></html>"
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "media.length": 2,
+      "media.0.variants.0.url": "https://media.example.com/photo.jpg",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "medium",
+    "name": "paragraphs markup images and code",
+    "url": "https://medium.com/@ada/fixture-0123456789ab",
+    "routes": [
+      {
+        "url": "/_/graphql",
+        "method": "POST",
+        "status": 200,
+        "body": "[{\"data\":{\"post\":{\"title\":\"Fixture title\",\"content\":{\"bodyModel\":{\"paragraphs\":[{\"type\":\"P\",\"text\":\"Fixture body\",\"markups\":[{\"type\":\"STRONG\",\"start\":0,\"end\":7}]},{\"type\":\"IMG\",\"text\":\"Caption\",\"metadata\":{\"id\":\"image123\"}},{\"type\":\"PRE\",\"text\":\"print(1)\",\"codeBlockMetadata\":{\"lang\":\"python\"}}]}},\"creator\":{\"id\":\"1\",\"username\":\"ada\",\"name\":\"Ada Lovelace\",\"imageId\":\"author-image\"}}}}]"
+      }
+    ],
+    "expected": {
+      "media.0.variants.0.url": "https://miro.medium.com/v2/image123",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://miro.medium.com/v2/author-image",
+      "authorInfo.username": "ada"
+    },
+    "contains": {
+      "markdown": "**Fixture** body"
+    }
+  },
+  {
+    "platform": "pipix",
+    "name": "RENDER_DATA video",
+    "url": "https://h5.pipix.com/item/123",
+    "routes": [
+      {
+        "url": "/item/123",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script id=\"RENDER_DATA\">%7B%22ppxItemDetail%22%3A%7B%22item%22%3A%7B%22item_id%22%3A%22123%22%2C%22item_type%22%3A2%2C%22content%22%3A%22Fixture%20body%22%2C%22author%22%3A%7B%22id%22%3A%221%22%2C%22unique_id%22%3A%22ada%22%2C%22name%22%3A%22Ada%20Lovelace%22%2C%22avatar%22%3A%7B%22url_list%22%3A%5B%22https%3A%2F%2Fmedia.example.com%2Favatar.jpg%22%5D%7D%7D%2C%22video%22%3A%7B%22video_download%22%3A%7B%22url_list%22%3A%5B%22https%3A%2F%2Fmedia.example.com%2Fvideo.mp4%22%5D%2C%22duration%22%3A4%7D%7D%7D%7D%7D</script></body></html>"
+      }
+    ],
+    "expected": {
+      "text": "Fixture body",
+      "media.0.variants.0.durationMs": 4000,
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "snapchat",
+    "name": "Spotlight metadata",
+    "url": "https://www.snapchat.com/spotlight/abc",
+    "routes": [
+      {
+        "url": "/spotlight/abc",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script id=\"__NEXT_DATA__\" type=\"application/json\">{\"props\":{\"story\":{\"storyId\":{\"value\":\"abc\"}},\"metadata\":{\"description\":\"Fixture body\",\"videoMetadata\":{\"creator\":{\"personCreator\":{\"username\":\"ada\",\"name\":\"Ada Lovelace\",\"image\":\"https://media.example.com/avatar.jpg\"}},\"name\":\"Fixture video\",\"contentUrl\":\"https://media.example.com/video.mp4\",\"durationMs\":4000}}}}</script></body></html>"
+      }
+    ],
+    "expected": {
+      "title": "Fixture video",
+      "media.0.variants.0.url": "https://media.example.com/video.mp4",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "threads",
+    "name": "matching shortcode",
+    "url": "https://www.threads.com/@ada/post/ABC",
+    "routes": [
+      {
+        "url": "threads.com/$",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body>csrf</body></html>",
+        "headers": {
+          "set-cookie": [
+            "csrftoken=fixture; Path=/; Secure"
+          ]
+        }
+      },
+      {
+        "url": "/graphql/query",
+        "method": "POST",
+        "status": 200,
+        "body": "{\"data\":{\"items\":[{\"code\":\"OTHER\",\"media_type\":1,\"caption\":\"Wrong\"},{\"code\":\"ABC\",\"media_type\":1,\"caption\":{\"text\":\"Fixture body\"},\"image_versions2\":{\"candidates\":[{\"url\":\"https://media.example.com/photo.jpg\"}]},\"user\":{\"pk\":\"1\",\"username\":\"ada\",\"full_name\":\"Ada Lovelace\",\"profile_pic_url\":\"https://media.example.com/avatar.jpg\"}}]}}"
+      }
+    ],
+    "expected": {
+      "text": "Fixture body",
+      "media.0.variants.0.url": "https://media.example.com/photo.jpg",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "tieba",
+    "name": "signed thread",
+    "url": "https://tieba.baidu.com/p/123",
+    "routes": [
+      {
+        "url": "/dc/common/tbs",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"tbs\":\"fixture\"}"
+      },
+      {
+        "url": "/c/f/pb/page_pc",
+        "method": "POST",
+        "status": 200,
+        "body": "{\"error_code\":\"0\",\"thread\":{\"origin_thread_info\":{\"title\":\"Fixture title\",\"content\":[{\"type\":0,\"text\":\"Fixture body\"}],\"media\":[{\"big_pic\":\"https://media.example.com/photo.jpg\",\"width\":\"800\",\"height\":\"600\"}]},\"author\":{\"id\":\"1\",\"name\":\"ada\",\"name_show\":\"Ada Lovelace\",\"portrait\":\"https://media.example.com/avatar.jpg\"}}}",
+        "bodyContains": "sign="
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "media.0.variants.0.width": 800,
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "tiktok",
+    "name": "challenge then hydration",
+    "url": "https://www.tiktok.com/@ada/video/123",
+    "routes": [
+      {
+        "url": "/@_/video/123",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><div id=\"cs\" class=\"eyJ2Ijp7ImEiOiJjSEpsWm1sNCIsImMiOiJZa3BZS1F0Uy9jbWNDYjdYTUVxam1oZUNjQ21QdDNzQmUzQ1prU00xUFBRPSJ9fQ==\"></div><div id=\"wci\" class=\"challenge\"></div></body></html>"
+      },
+      {
+        "url": "/@_/video/123",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script id=\"__UNIVERSAL_DATA_FOR_REHYDRATION__\" type=\"application/json\">{\"__DEFAULT_SCOPE__\":{\"webapp.video-detail\":{\"itemInfo\":{\"itemStruct\":{\"author\":{\"id\":\"1\",\"uniqueId\":\"ada\",\"nickname\":\"Ada Lovelace\",\"avatarLarger\":\"https://media.example.com/avatar.jpg\"},\"id\":\"123\",\"desc\":\"Fixture video\",\"video\":{\"playAddr\":\"https://media.example.com/video.mp4\",\"duration\":4}}}}}}</script></body></html>",
+        "requestHeaders": {
+          "cookie": "challenge="
+        }
+      }
+    ],
+    "expected": {
+      "text": "Fixture video",
+      "media.0.variants.0.durationMs": 4000,
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "toutiao",
+    "name": "article embedded VOD",
+    "url": "https://www.toutiao.com/article/123",
+    "routes": [
+      {
+        "url": "/i123/info/v2/",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"data\":{\"title\":\"Fixture title\",\"content\":\"<p>Fixture body with <strong>important ideas</strong> and a <a href=\\\"/next\\\">reference</a>.</p><div class=\\\"tt-video-box\\\" data-token=\\\"eyJHZXRQbGF5SW5mb1Rva2VuIjoidG9rZW49Zml4dHVyZSJ9\\\"></div>\",\"user_info\":{\"user_id\":\"1\",\"screen_name\":\"ada\",\"name\":\"Ada Lovelace\",\"avatar_url\":\"https://media.example.com/avatar.jpg\"}}}"
+      },
+      {
+        "url": "vod.bytedanceapi.com/",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"Result\":{\"Data\":{\"PlayInfoList\":[{\"MainPlayUrl\":\"https://media.example.com/video.mp4\",\"Height\":\"1080\",\"Duration\":\"4\"}]}}}"
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "media.0.variants.0.height": 1080,
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "twitter",
+    "name": "guest GraphQL long note",
+    "url": "https://x.com/ada/status/123",
+    "routes": [
+      {
+        "url": "/1.1/guest/activate.json",
+        "method": "POST",
+        "status": 200,
+        "body": "{\"guest_token\":\"fixture\"}"
+      },
+      {
+        "url": "/TweetResultByRestId",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"data\":{\"tweetResult\":{\"result\":{\"rest_id\":\"123\",\"legacy\":{\"full_text\":\"Short\",\"extended_entities\":{\"media\":[{\"type\":\"photo\",\"media_url_https\":\"https://media.example.com/photo.jpg\"}]}},\"note_tweet\":{\"note_tweet_results\":{\"result\":{\"text\":\"Fixture long note\"}}},\"core\":{\"user_results\":{\"result\":{\"rest_id\":\"1\",\"legacy\":{\"screen_name\":\"ada\",\"name\":\"Ada Lovelace\",\"profile_image_url_https\":\"https://media.example.com/avatar.jpg\"}}}}}}}}"
+      }
+    ],
+    "expected": {
+      "text": "Fixture long note",
+      "media.0.variants.0.url": "https://media.example.com/photo.jpg?name=orig",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "twitter",
+    "name": "syndication fallback",
+    "url": "https://x.com/ada/status/123",
+    "routes": [
+      {
+        "url": "/1.1/guest/activate.json",
+        "method": "POST",
+        "status": 403,
+        "body": "{}"
+      },
+      {
+        "url": "cdn.syndication.twimg.com/tweet-result",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"id_str\":\"123\",\"text\":\"Fixture body\"}"
+      }
+    ],
+    "expected": {
+      "text": "Fixture body",
+      "attempts.0.stage": "graphql"
+    }
+  },
+  {
+    "platform": "weibo",
+    "name": "mixed live photo and repost",
+    "url": "https://weibo.com/ada/123",
+    "routes": [
+      {
+        "url": "/ajax/statuses/show",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"idstr\":\"123\",\"text_raw\":\"Fixture body\",\"mix_media_info\":{\"items\":[{\"type\":\"pic\",\"data\":{\"type\":\"livephoto\",\"video\":\"https://media.example.com/video.mp4\",\"largest\":{\"url\":\"https://media.example.com/photo.jpg\"}}}]},\"retweeted_status\":{\"idstr\":\"456\",\"text_raw\":\"Quoted body\"},\"user\":{\"idstr\":\"1\",\"domain\":\"ada\",\"screen_name\":\"Ada Lovelace\",\"avatar_hd\":\"https://media.example.com/avatar.jpg\"}}"
+      }
+    ],
+    "expected": {
+      "media.0.kind": "livePhoto",
+      "media.0.companionVideo.variants.0.url": "https://media.example.com/video.mp4",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    },
+    "contains": {
+      "text": "Quoted body"
+    }
+  },
+  {
+    "platform": "weixin",
+    "name": "cgi article lazy image",
+    "url": "https://mp.weixin.qq.com/s/abc",
+    "routes": [
+      {
+        "url": "/s/abc",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script>window.cgiDataNew={\"item_show_type\":0,\"title\":\"Fixture title\",\"content_noencode\":\"<p>Fixture body with <strong>important ideas</strong> and a <a href=\\\"/next\\\">reference</a>.</p><img data-src=\\\"https://media.example.com/photo.jpg\\\">\"};</script><script>var nickname=\"Ada Lovelace\";var alias=\"ada\";var head_img=\"https://media.example.com/avatar.jpg\";</script></body></html>"
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "media.0.variants.0.url": "https://media.example.com/photo.jpg",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "weixin",
+    "name": "mdnice code via cgiDataNew",
+    "url": "https://mp.weixin.qq.com/s/code-cgi",
+    "routes": [
+      {
+        "url": "/s/code-cgi",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script>window.cgiDataNew={\"item_show_type\":0,\"title\":\"Fixture title\",\"content_noencode\":\"<pre data-tool=\\\"mdnice编辑器\\\" style=\\\"margin: 10px 0;border-radius: 5px;box-shadow: rgba(0, 0, 0, 0.55) 0px 2px 10px;text-align: left;margin-top: 10px;margin-bottom: 10px;padding: 0;\\\"><code style=\\\"overflow-x: auto;padding: 16px;color: #abb2bf;-webkit-overflow-scrolling: touch;letter-spacing: 0px;padding-top: 15px;background: #282c34;border-radius: 5px;display: -webkit-box;font-family: Consolas, Monaco, Menlo, monospace;font-size: 12px;\\\"><span style=\\\"color: #61aeee;line-height: 26px;\\\"><span leaf=\\\"\\\">@Override</span></span><span leaf=\\\"\\\"><br  /></span><span style=\\\"line-height: 26px;\\\"><span style=\\\"color: #c678dd;line-height: 26px;\\\"><span leaf=\\\"\\\">public</span></span><span leaf=\\\"\\\">&nbsp;</span><span style=\\\"color: #c678dd;line-height: 26px;\\\"><span leaf=\\\"\\\">void</span></span><span leaf=\\\"\\\">&nbsp;</span><span style=\\\"color: #61aeee;line-height: 26px;\\\"><span leaf=\\\"\\\">draw</span></span><span style=\\\"line-height: 26px;\\\"><span leaf=\\\"\\\">(Canvas canvas)</span></span><span leaf=\\\"\\\">&nbsp;</span></span><span leaf=\\\"\\\">{</span><span leaf=\\\"\\\"><br  /></span><span leaf=\\\"\\\">&nbsp; &nbsp; Surface surface = renderTarget.getSurface();</span><span leaf=\\\"\\\"><br  /></span><span leaf=\\\"\\\"><br  /></span><span leaf=\\\"\\\">&nbsp; &nbsp; Canvas targetCanvas = surface.lockHardwareCanvas();</span><span leaf=\\\"\\\"><br  /></span><span leaf=\\\"\\\"><br  /></span><span leaf=\\\"\\\">&nbsp; &nbsp;&nbsp;</span><span style=\\\"color: #c678dd;line-height: 26px;\\\"><span leaf=\\\"\\\">try</span></span><span leaf=\\\"\\\">&nbsp;{</span><span leaf=\\\"\\\"><br  /></span><span leaf=\\\"\\\">&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span><span style=\\\"color: #c678dd;line-height: 26px;\\\"><span leaf=\\\"\\\">super</span></span><span leaf=\\\"\\\">.draw(targetCanvas);</span><span leaf=\\\"\\\"><br  /></span><span leaf=\\\"\\\">&nbsp; &nbsp; }&nbsp;</span><span style=\\\"color: #c678dd;line-height: 26px;\\\"><span leaf=\\\"\\\">finally</span></span><span leaf=\\\"\\\">&nbsp;{</span><span leaf=\\\"\\\"><br  /></span><span leaf=\\\"\\\">&nbsp; &nbsp; &nbsp; &nbsp; renderTarget.scheduleFrame();</span><span leaf=\\\"\\\"><br  /></span><span leaf=\\\"\\\">&nbsp; &nbsp; &nbsp; &nbsp; surface.unlockCanvasAndPost(targetCanvas);</span><span leaf=\\\"\\\"><br  /></span><span leaf=\\\"\\\">&nbsp; &nbsp; }</span><span leaf=\\\"\\\"><br  /></span><span leaf=\\\"\\\">}</span><span leaf=\\\"\\\"><br  /></span></code></pre>\\n\"};</script></body></html>"
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "markdown": "```\n@Override\npublic void draw(Canvas canvas) {\n    Surface surface = renderTarget.getSurface();\n\n    Canvas targetCanvas = surface.lockHardwareCanvas();\n\n    try {\n        super.draw(targetCanvas);\n    } finally {\n        renderTarget.scheduleFrame();\n        surface.unlockCanvasAndPost(targetCanvas);\n    }\n}\n```",
+      "text": "@Override\npublic void draw(Canvas canvas) {\n    Surface surface = renderTarget.getSurface();\n\n    Canvas targetCanvas = surface.lockHardwareCanvas();\n\n    try {\n        super.draw(targetCanvas);\n    } finally {\n        renderTarget.scheduleFrame();\n        surface.unlockCanvasAndPost(targetCanvas);\n    }\n}"
+    }
+  },
+  {
+    "platform": "weixin",
+    "name": "mdnice code via article DOM fallback",
+    "url": "https://mp.weixin.qq.com/s/code-dom",
+    "routes": [
+      {
+        "url": "/s/code-dom",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><h1 id=\"activity-name\">Fixture title</h1><div id=\"js_content\"><pre data-tool=\"mdnice编辑器\" style=\"margin: 10px 0;border-radius: 5px;box-shadow: rgba(0, 0, 0, 0.55) 0px 2px 10px;text-align: left;margin-top: 10px;margin-bottom: 10px;padding: 0;\"><code style=\"overflow-x: auto;padding: 16px;color: #abb2bf;-webkit-overflow-scrolling: touch;letter-spacing: 0px;padding-top: 15px;background: #282c34;border-radius: 5px;display: -webkit-box;font-family: Consolas, Monaco, Menlo, monospace;font-size: 12px;\"><span style=\"color: #61aeee;line-height: 26px;\"><span leaf=\"\">@Override</span></span><span leaf=\"\"><br  /></span><span style=\"line-height: 26px;\"><span style=\"color: #c678dd;line-height: 26px;\"><span leaf=\"\">public</span></span><span leaf=\"\">&nbsp;</span><span style=\"color: #c678dd;line-height: 26px;\"><span leaf=\"\">void</span></span><span leaf=\"\">&nbsp;</span><span style=\"color: #61aeee;line-height: 26px;\"><span leaf=\"\">draw</span></span><span style=\"line-height: 26px;\"><span leaf=\"\">(Canvas canvas)</span></span><span leaf=\"\">&nbsp;</span></span><span leaf=\"\">{</span><span leaf=\"\"><br  /></span><span leaf=\"\">&nbsp; &nbsp; Surface surface = renderTarget.getSurface();</span><span leaf=\"\"><br  /></span><span leaf=\"\"><br  /></span><span leaf=\"\">&nbsp; &nbsp; Canvas targetCanvas = surface.lockHardwareCanvas();</span><span leaf=\"\"><br  /></span><span leaf=\"\"><br  /></span><span leaf=\"\">&nbsp; &nbsp;&nbsp;</span><span style=\"color: #c678dd;line-height: 26px;\"><span leaf=\"\">try</span></span><span leaf=\"\">&nbsp;{</span><span leaf=\"\"><br  /></span><span leaf=\"\">&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span><span style=\"color: #c678dd;line-height: 26px;\"><span leaf=\"\">super</span></span><span leaf=\"\">.draw(targetCanvas);</span><span leaf=\"\"><br  /></span><span leaf=\"\">&nbsp; &nbsp; }&nbsp;</span><span style=\"color: #c678dd;line-height: 26px;\"><span leaf=\"\">finally</span></span><span leaf=\"\">&nbsp;{</span><span leaf=\"\"><br  /></span><span leaf=\"\">&nbsp; &nbsp; &nbsp; &nbsp; renderTarget.scheduleFrame();</span><span leaf=\"\"><br  /></span><span leaf=\"\">&nbsp; &nbsp; &nbsp; &nbsp; surface.unlockCanvasAndPost(targetCanvas);</span><span leaf=\"\"><br  /></span><span leaf=\"\">&nbsp; &nbsp; }</span><span leaf=\"\"><br  /></span><span leaf=\"\">}</span><span leaf=\"\"><br  /></span></code></pre>\n</div></body></html>"
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "attempts.0.stage": "cgiDataNew",
+      "markdown": "```\n@Override\npublic void draw(Canvas canvas) {\n    Surface surface = renderTarget.getSurface();\n\n    Canvas targetCanvas = surface.lockHardwareCanvas();\n\n    try {\n        super.draw(targetCanvas);\n    } finally {\n        renderTarget.scheduleFrame();\n        surface.unlockCanvasAndPost(targetCanvas);\n    }\n}\n```",
+      "text": "@Override\npublic void draw(Canvas canvas) {\n    Surface surface = renderTarget.getSurface();\n\n    Canvas targetCanvas = surface.lockHardwareCanvas();\n\n    try {\n        super.draw(targetCanvas);\n    } finally {\n        renderTarget.scheduleFrame();\n        surface.unlockCanvasAndPost(targetCanvas);\n    }\n}"
+    }
+  },
+  {
+    "platform": "weixin_channels",
+    "name": "Yuanbao to Finder",
+    "url": "https://weixin.qq.com/sph/abc",
+    "routes": [
+      {
+        "url": "/api/weixin/get_parse_result",
+        "method": "POST",
+        "status": 200,
+        "body": "{\"code\":0,\"data\":{\"playable_url\":\"https://channels.weixin.qq.com/preview?token=fixture&eid=123\"}}"
+      },
+      {
+        "url": "/api/feed/get_feed_info",
+        "method": "POST",
+        "status": 200,
+        "body": "{\"errCode\":0,\"data\":{\"feedInfo\":{\"description\":\"Fixture video\",\"videoUrl\":\"https://media.example.com/video.mp4\"},\"authorInfo\":{\"id\":\"1\",\"username\":\"ada\",\"nickname\":\"Ada Lovelace\",\"headUrl\":\"https://media.example.com/avatar.jpg\"}}}",
+        "bodyContains": "generalToken"
+      }
+    ],
+    "expected": {
+      "title": "Fixture video",
+      "media.0.variants.0.url": "https://media.example.com/video.mp4",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "xiaoheihe",
+    "name": "device registration and original image",
+    "url": "https://www.xiaoheihe.cn/app/bbs/link/123",
+    "routes": [
+      {
+        "url": "/deviceprofile/v4",
+        "method": "POST",
+        "status": 200,
+        "body": "{\"code\":1100,\"detail\":{\"deviceId\":\"fixture\"}}",
+        "bodyContains": "\"compress\":2"
+      },
+      {
+        "url": "/bbs/app/link/tree",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"status\":\"ok\",\"result\":{\"link\":{\"title\":\"Fixture title\",\"text\":\"[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"Fixture body\\\"},{\\\"type\\\":\\\"img\\\",\\\"url\\\":\\\"https://media.example.com/photo/thumb.jpg?size=1\\\"}]\",\"user\":{\"userid\":\"1\",\"username\":\"ada\",\"nickname\":\"Ada Lovelace\",\"avatar\":\"https://media.example.com/avatar.jpg\"}}}}",
+        "requestHeaders": {
+          "cookie": "x_xhh_tokenid=Bfixture"
+        }
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "media.0.variants.0.url": "https://media.example.com/photo.jpg",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "xhs",
+    "name": "live photo note",
+    "url": "https://www.xiaohongshu.com/explore/abc",
+    "routes": [
+      {
+        "url": "/explore/abc",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script>window.__INITIAL_STATE__={\"note\":{\"noteDetailMap\":{\"abc\":{\"note\":{\"user\":{\"userId\":\"1\",\"redId\":\"ada\",\"nickname\":\"Ada Lovelace\",\"avatar\":\"https://media.example.com/avatar.jpg\"},\"noteId\":\"abc\",\"title\":\"Fixture title\",\"desc\":\"Fixture body\",\"imageList\":[{\"urlDefault\":\"https://media.example.com/photo.jpg\",\"livePhoto\":true,\"stream\":{\"h264\":[{\"masterUrl\":\"https://media.example.com/video.mp4\",\"duration\":4}]}}]}}}}};</script></body></html>"
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "media.0.kind": "livePhoto",
+      "media.0.companionVideo.variants.0.url": "https://media.example.com/video.mp4",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "xhs",
+    "name": "guest activation after page fallback",
+    "url": "https://www.xiaohongshu.com/explore/abc",
+    "routes": [
+      {
+        "url": "/explore/abc",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body>login</body></html>"
+      },
+      {
+        "url": "/explore/abc",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body>login</body></html>"
+      },
+      {
+        "url": "/api/sns/web/v1/login/activate",
+        "method": "POST",
+        "status": 200,
+        "body": "{}",
+        "requestHeaders": {
+          "x-s": "XYS_",
+          "x-s-common": ""
+        },
+        "headers": {
+          "set-cookie": [
+            "web_session=guest-fixture; Path=/; Secure"
+          ]
+        }
+      },
+      {
+        "url": "/explore/abc",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script>window.__INITIAL_STATE__={\"note\":{\"noteDetailMap\":{\"abc\":{\"note\":{\"noteId\":\"abc\",\"title\":\"Fixture title\",\"desc\":\"Fixture body\",\"imageList\":[{\"urlDefault\":\"https://media.example.com/photo.jpg\",\"livePhoto\":true,\"stream\":{\"h264\":[{\"masterUrl\":\"https://media.example.com/video.mp4\",\"duration\":4}]}}]}}}}};</script></body></html>",
+        "requestHeaders": {
+          "cookie": "web_session=guest-fixture"
+        }
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "attempts.0.stage": "desktop-page"
+    }
+  },
+  {
+    "platform": "xhs",
+    "name": "saved session is not replaced by guest",
+    "url": "https://www.xiaohongshu.com/explore/abc",
+    "routes": [
+      {
+        "url": "/explore/abc",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body>login</body></html>"
+      },
+      {
+        "url": "/explore/abc",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body>login</body></html>"
+      }
+    ],
+    "expected": {},
+    "cookies": [
+      {
+        "name": "web_session",
+        "value": "saved",
+        "domain": ".xiaohongshu.com"
+      }
+    ],
+    "error": "authenticationRequired"
+  },
+  {
+    "platform": "youtube",
+    "name": "watch player adaptive tracks",
+    "url": "https://youtu.be/abcdefghijk",
+    "routes": [
+      {
+        "url": "/watch",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script>window.ytInitialPlayerResponse={\"playabilityStatus\":{\"status\":\"OK\"},\"videoDetails\":{\"videoId\":\"abcdefghijk\",\"channelId\":\"UCfixture\",\"author\":\"Ada Lovelace\",\"title\":\"Fixture video\",\"shortDescription\":\"Fixture body\"},\"streamingData\":{\"adaptiveFormats\":[{\"url\":\"https://media.example.com/video.mp4\",\"mimeType\":\"video/mp4; codecs=\\\"avc1\\\"\",\"width\":1920,\"height\":1080,\"approxDurationMs\":\"4000\"},{\"url\":\"https://media.example.com/audio.m4a\",\"mimeType\":\"audio/mp4; codecs=\\\"mp4a\\\"\",\"approxDurationMs\":\"4000\"}]}};</script><script>window.ytInitialData={\"videoOwnerRenderer\":{\"thumbnail\":{\"thumbnails\":[{\"url\":\"https://media.example.com/avatar.jpg\"}]},\"navigationEndpoint\":{\"browseEndpoint\":{\"canonicalBaseUrl\":\"/@ada\"}}}};</script></body></html>"
+      }
+    ],
+    "expected": {
+      "title": "Fixture video",
+      "media.length": 2,
+      "media.0.variants.0.hasAudio": false,
+      "media.1.kind": "audio",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "youtube",
+    "name": "unavailable watch and WEB retry ANDROID_VR",
+    "url": "https://www.youtube.com/watch?v=abcdefghijk",
+    "routes": [
+      {
+        "url": "/watch",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title></head><body><script>window.ytInitialPlayerResponse={\"videoDetails\":{\"videoId\":\"abcdefghijk\"},\"playabilityStatus\":{\"status\":\"ERROR\"}};</script></body></html>"
+      },
+      {
+        "url": "/youtubei/v1/player",
+        "method": "POST",
+        "status": 200,
+        "body": "{\"videoDetails\":{\"videoId\":\"abcdefghijk\"},\"playabilityStatus\":{\"status\":\"ERROR\"}}",
+        "bodyContains": "\"WEB\""
+      },
+      {
+        "url": "/youtubei/v1/player",
+        "method": "POST",
+        "status": 200,
+        "body": "{\"playabilityStatus\":{\"status\":\"OK\"},\"videoDetails\":{\"videoId\":\"abcdefghijk\",\"title\":\"Fixture video\",\"shortDescription\":\"Fixture body\"},\"streamingData\":{\"adaptiveFormats\":[{\"url\":\"https://media.example.com/video.mp4\",\"mimeType\":\"video/mp4; codecs=\\\"avc1\\\"\",\"width\":1920,\"height\":1080,\"approxDurationMs\":\"4000\"},{\"url\":\"https://media.example.com/audio.m4a\",\"mimeType\":\"audio/mp4; codecs=\\\"mp4a\\\"\",\"approxDurationMs\":\"4000\"}]}}",
+        "bodyContains": "\"ANDROID_VR\""
+      }
+    ],
+    "expected": {
+      "title": "Fixture video",
+      "attempts.0.code": "contentUnavailable",
+      "attempts.1.stage": "web-player"
+    }
+  },
+  {
+    "platform": "zhihu",
+    "name": "signed answer cookie",
+    "url": "https://www.zhihu.com/question/1/answer/123",
+    "routes": [
+      {
+        "url": "/api/v4/answers/123",
+        "method": "GET",
+        "status": 200,
+        "body": "{\"question\":{\"title\":\"Fixture title\"},\"content\":\"<p>Fixture body with <strong>important ideas</strong> and a <a href=\\\"/next\\\">reference</a>.</p><img src=\\\"https://media.example.com/photo.jpg\\\">\",\"author\":{\"id\":\"1\",\"url_token\":\"ada\",\"name\":\"Ada Lovelace\",\"avatar_url\":\"https://media.example.com/avatar.jpg\"}}",
+        "requestHeaders": {
+          "x-zse-96": "2.0_"
+        }
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "author": "Ada Lovelace",
+      "media.0.variants.0.url": "https://media.example.com/photo.jpg",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    },
+    "cookies": [
+      {
+        "name": "d_c0",
+        "value": "fixture",
+        "domain": ".zhihu.com"
+      }
+    ]
+  },
+  {
+    "platform": "zuiyou",
+    "name": "image and video post",
+    "url": "https://share.xiaochuankeji.cn/hybrid/share/post?pid=123",
+    "routes": [
+      {
+        "url": "/planck/share/post/detail_h5",
+        "method": "POST",
+        "status": 200,
+        "body": "{\"data\":{\"post\":{\"content\":\"Fixture body\",\"imgs\":[{\"id\":1,\"urls\":{\"original\":{\"urls\":[\"https://media.example.com/photo.jpg\"]}}},{\"id\":2,\"video\":true,\"urls\":{\"original\":{\"urls\":[\"https://media.example.com/photo.jpg\"]}}}],\"videos\":{\"2\":{\"url\":\"https://media.example.com/video.mp4\"}},\"member\":{\"id\":\"1\",\"username\":\"ada\",\"name\":\"Ada Lovelace\",\"avatar\":\"https://media.example.com/avatar.jpg\"}}}}",
+        "bodyContains": "\"pid\":123"
+      }
+    ],
+    "expected": {
+      "text": "Fixture body",
+      "media.0.kind": "image",
+      "media.1.kind": "video",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    }
+  },
+  {
+    "platform": "generic_web",
+    "name": "Readability relative links and sanitizing",
+    "url": "https://reader.example.com/story",
+    "routes": [
+      {
+        "url": "/story",
+        "method": "GET",
+        "status": 200,
+        "body": "<html><head><title>Fixture title</title><script type=\"application/ld+json\">{\"@type\":\"Article\",\"author\":{\"@type\":\"Person\",\"name\":\"Ada Lovelace\",\"alternateName\":\"ada\",\"image\":\"https://media.example.com/avatar.jpg\",\"url\":\"https://reader.example.com/ada\"}}</script></head><body><article><h1>Fixture title</h1><p>Fixture body with <strong>important ideas</strong> and a <a href=\"/next\">reference</a>.</p><p>Fixture body with <strong>important ideas</strong> and a <a href=\"/next\">reference</a>.</p><p>Fixture body with <strong>important ideas</strong> and a <a href=\"/next\">reference</a>.</p><p>Fixture body with <strong>important ideas</strong> and a <a href=\"/next\">reference</a>.</p><p>Fixture body with <strong>important ideas</strong> and a <a href=\"/next\">reference</a>.</p><p>Fixture body with <strong>important ideas</strong> and a <a href=\"/next\">reference</a>.</p><p>Fixture body with <strong>important ideas</strong> and a <a href=\"/next\">reference</a>.</p><p>Fixture body with <strong>important ideas</strong> and a <a href=\"/next\">reference</a>.</p><img src=\"https://media.example.com/photo.jpg\"><script>alert('untrusted')</script></article></body></html>"
+      }
+    ],
+    "expected": {
+      "title": "Fixture title",
+      "media.0.variants.0.url": "https://media.example.com/photo.jpg",
+      "authorInfo.displayName": "Ada Lovelace",
+      "authorInfo.avatarUrl": "https://media.example.com/avatar.jpg",
+      "authorInfo.username": "ada"
+    },
+    "contains": {
+      "markdown": "https://reader.example.com/next"
+    },
+    "absent": {
+      "html": "<script"
+    }
+  }
+]

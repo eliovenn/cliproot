@@ -1,0 +1,14 @@
+/target/
+**/node_modules/
+**/.dart_tool/
+**/build/
+**/dist/
+**/npm/
+*.node
+*.so
+*.dylib
+*.dll
+*.a
+.DS_Store
+**/pubspec_overrides.yaml
+**/validation-results/

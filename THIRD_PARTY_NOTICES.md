@@ -1,0 +1,82 @@
+# 第三方组件与来源说明
+
+本文件记录本库使用的第三方组件及协议实现参考来源。JS 来自 Folinel 当前使用的本地 `parsehub_dart` 工作区，迁移时保留其全部规则与来源记录。构建时 `rules/tool/notices.mjs` 汇总 npm 运行时依赖的完整许可文本，与本文件一起生成 `resources/bootstrap/THIRD_PARTY_LICENSES.txt` 和 CDN 同名文件。发布 bundle 时保留该文件。
+
+| 来源 | 固定版本／提交 | 使用范围 | 许可记录 |
+| --- | --- | --- | --- |
+| [ParseHub](https://github.com/z-mio/ParseHub) | `ce48ba06264553743c862dc2456a87a480ce7685` / 2.3.15 | 平台协议与部分签名的参考来源 | MIT，Copyright (c) 2024 梓澪 |
+| [yt-dlp](https://github.com/yt-dlp/yt-dlp) | `f264a6cbd1f630894da0f368df00f8aae50140e0` / 2026.10.26 | YouTube、Facebook、Snapchat、Bilibili 所需逻辑 | Unlicense；使用文件无另附许可头 |
+| [yt-dlp/ejs](https://github.com/yt-dlp/ejs) | 上述 yt-dlp 内嵌 core，SHA-256 `ca259e4e3cdd37d92fc266d9af08d4fd66da8479e240f4d984f29da402c22ead` | JS 签名求解器 | 文件 SPDX：Unlicense |
+| [SignerPy](https://github.com/is-L7N/SignerPy/) | 0.12.0 | Gorgon、Ladon、Argus 协议参考 | PyPI metadata 声明 MIT；归档 LICENSE.txt 仅含 `copyright 2025 aythor : L7N`，保留原文 |
+| [xhshow](https://github.com/Cloxl/xhshow) | 0.2.0 | 小红书签名／指纹／游客流程 | MIT，Copyright (c) 2024 Cloxl |
+| [SecuritySm 原始出处](https://github.com/YueHen14/skyland-auto-sign/blob/6e7115b5580377c842f50f05b0fa39ab079c17b1/SecuritySm.py) | ParseHub 引用的 `6e7115b5580377c842f50f05b0fa39ab079c17b1` | 小黑盒设备指纹算法 | 保留 ParseHub 中的来源链；未单独核验此历史项目的许可 |
+| [FJS](https://github.com/fluttercandies/fjs) | 3.3.2 | 原宿主与运行时配置参考；Cliproot 核心不依赖 Flutter FJS 插件 | MIT，Copyright (c) 2025 iota9star |
+| [rquickjs](https://github.com/DelSkayn/rquickjs) | `3d5ecfc94e3f9ea3a9769422ca718a7dd063e00f` | QuickJS-NG Rust 绑定，沿用原 FJS 锁定提交 | MIT；内嵌引擎保留上游许可 |
+| [AWS LLRT](https://github.com/awslabs/llrt) | `89941ae1f4e07dbfe2c09bf89e5f6261906202d3` | Buffer、URL、util、crypto 和异常模块 | Apache-2.0 |
+| [reqwest](https://github.com/seanmonstar/reqwest) | 0.13.5 | HTTP、Cookie Jar、DNS 扩展接口 | MIT OR Apache-2.0；传递依赖见 Cargo.lock |
+| [atomic-write-file](https://github.com/andreacorbellini/rust-atomic-write-file) | 0.3.1 | 跨平台原子提交规则缓存 | BSD-3-Clause |
+| [Flutter Rust Bridge](https://github.com/fzyzcjy/flutter_rust_bridge) | 2.13.0 | Rust／Dart 绑定生成与 Native Assets hooks | MIT |
+| [FFIgen](https://github.com/dart-lang/native/tree/main/pkgs/ffigen) | 23.0.0 | 自有 C ABI 路径入口与 recorded-use 映射生成，仅开发工具 | BSD-3-Clause；生成文件保留自有声明的 MIT 许可 |
+
+直接 npm 依赖：Readability 0.6.0（Apache-2.0）、astring 1.9.0（BSD-3-Clause）、CryptoJS 4.2.0（MIT）、json-bigint 1.0.0（MIT）、JSON5 2.2.3（MIT）、linkedom 0.18.12（ISC）、meriyah 6.1.4（ISC）、Turndown 7.2.1（MIT）。确切版本与传递依赖以 `rules/package-lock.json` 为准；esbuild 是构建工具，不在运行 bundle 中。
+
+boolbase 1.0.0 的 npm 包没有携带 LICENSE 文件，许可补充文本保存于 `rules/licenses/boolbase-1.0.0.txt`，取自其仓库的 `https://raw.githubusercontent.com/fb55/boolbase/master/LICENSE`（2026-10-28 核对），与该包 metadata 的 ISC 声明一致。
+
+## ParseHub / xhshow — MIT
+
+Copyright (c) 2024 梓澪 (ParseHub)
+
+Copyright (c) 2024 Cloxl (xhshow)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+## yt-dlp / EJS — Unlicense
+
+This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <http://unlicense.org/>
+
+## SignerPy 0.12.0 — 归档许可原文
+
+```text
+copyright 2025 aythor : L7N
+```
+
+此处记录归档内容与 metadata 的差异，没有将缺失许可正文补写为上游授权。

@@ -1,0 +1,45 @@
+[workspace]
+members = ["crates/cliproot-core", "crates/cliproot-frb"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+license = "MIT"
+
+[workspace.dependencies]
+atomic-write-file = "0.3.1"
+base64 = "0.23"
+chrono = { version = "0.4", default-features = false, features = ["std", "serde"] }
+flate2 = { version = "1.1", default-features = false, features = ["rust_backend"] }
+futures-util = "0.3"
+flutter_rust_bridge = "=2.13.0"
+include_dir = "0.7"
+rand = "0.10"
+regex = "1"
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls-no-provider", "cookies", "stream", "gzip", "brotli", "deflate", "http2"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+webpki-roots = "1"
+# Match full-async except dyn-load: Cliproot only allows built-in modules,
+# not native dynamic modules (which also pull an unnecessary dlopen2 dependency).
+rquickjs = { git = "https://github.com/DelSkayn/rquickjs", rev = "3d5ecfc94e3f9ea3a9769422ca718a7dd063e00f", features = ["std", "chrono", "loader", "either", "indexmap", "macro", "phf", "futures"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "fs", "net", "io-util"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+url = { version = "2", features = ["serde"] }
+
+llrt_buffer = { git = "https://github.com/awslabs/llrt", rev = "89941ae1f4e07dbfe2c09bf89e5f6261906202d3" }
+llrt_crypto = { git = "https://github.com/awslabs/llrt", rev = "89941ae1f4e07dbfe2c09bf89e5f6261906202d3", default-features = false, features = ["crypto-ring"] }
+llrt_exceptions = { git = "https://github.com/awslabs/llrt", rev = "89941ae1f4e07dbfe2c09bf89e5f6261906202d3" }
+llrt_url = { git = "https://github.com/awslabs/llrt", rev = "89941ae1f4e07dbfe2c09bf89e5f6261906202d3" }
+llrt_util = { git = "https://github.com/awslabs/llrt", rev = "89941ae1f4e07dbfe2c09bf89e5f6261906202d3" }
+
+[patch.crates-io]
+rquickjs = { git = "https://github.com/DelSkayn/rquickjs", rev = "3d5ecfc94e3f9ea3a9769422ca718a7dd063e00f" }
+
+[profile.release]
+lto = "thin"
+strip = "debuginfo"

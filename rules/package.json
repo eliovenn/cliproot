@@ -1,0 +1,20 @@
+{
+  "name": "cliproot-rules",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "node tool/build.mjs"
+  },
+  "dependencies": {
+    "@mozilla/readability": "0.6.0",
+    "astring": "1.9.0",
+    "crypto-js": "4.2.0",
+    "json-bigint": "1.0.0",
+    "json5": "2.2.3",
+    "linkedom": "0.18.12",
+    "meriyah": "6.1.4",
+    "turndown": "7.2.1"
+  },
+  "devDependencies": { "esbuild": "0.25.12" }
+}

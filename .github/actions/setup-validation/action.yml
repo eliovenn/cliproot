@@ -1,0 +1,37 @@
+name: Set up Cliproot validation
+description: Install pinned toolchains and prepare the independent Flutter SDK.
+inputs:
+  rust-targets:
+    description: Additional Rust target triples for this job.
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      with:
+        python-version: '3.12'
+    - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      with:
+        node-version: '24'
+    - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+      with:
+        channel: stable
+        flutter-version: '3.50.0'
+        cache: true
+    - name: Install pinned Rust toolchain
+      shell: bash
+      env:
+        RUST_TARGETS: ${{ inputs.rust-targets }}
+      run: |
+        rustup toolchain install 1.99.1 --profile minimal --component rustfmt --component clippy
+        if [[ -n "$RUST_TARGETS" ]]; then
+          read -r -a targets <<< "$RUST_TARGETS"
+          rustup target add --toolchain 1.99.1 "${targets[@]}"
+        fi
+    - name: Prepare independent SDK source package
+      shell: bash
+      run: python tools/ci/prepare_sdk.py
+    - name: Resolve validation dependencies
+      shell: bash
+      run: python tools/ci/run_flutter.py --name pub-get -- pub get

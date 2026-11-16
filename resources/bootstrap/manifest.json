@@ -1,0 +1,443 @@
+{
+  "manifestVersion": 1,
+  "hostApiVersion": 1,
+  "resultSchemaVersion": 1,
+  "release": "0.1.0",
+  "sources": [
+    {
+      "id": "bangumi",
+      "version": "0.1.0",
+      "name": {
+        "zh": "Bangumi",
+        "en": "Bangumi"
+      },
+      "hosts": [
+        "bgm.tv",
+        "bangumi.tv",
+        "chii.in"
+      ],
+      "cookieDomain": ".bgm.tv",
+      "keep": [],
+      "priority": 100,
+      "entry": "876c3516466f3df927aa3e54f5e0a7a63c79f9f38766e80f6ddda6033c3b9d22.js",
+      "sha256": "876c3516466f3df927aa3e54f5e0a7a63c79f9f38766e80f6ddda6033c3b9d22"
+    },
+    {
+      "id": "bilibili",
+      "version": "0.1.0",
+      "name": {
+        "zh": "哔哩哔哩",
+        "en": "Bilibili"
+      },
+      "hosts": [
+        "bilibili.com",
+        "b23.tv",
+        "bili2233.cn"
+      ],
+      "cookieDomain": ".bilibili.com",
+      "keep": [
+        "p"
+      ],
+      "priority": 100,
+      "entry": "c7c2949bf79c3ff6e434d376f62b5c288ba5c5e5145e71340b4c4327b6116e2c.js",
+      "sha256": "c7c2949bf79c3ff6e434d376f62b5c288ba5c5e5145e71340b4c4327b6116e2c"
+    },
+    {
+      "id": "coolapk",
+      "version": "0.1.0",
+      "name": {
+        "zh": "酷安",
+        "en": "Coolapk"
+      },
+      "hosts": [
+        "coolapk.com"
+      ],
+      "cookieDomain": ".coolapk.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "2ea675e7cfa0afc979170ea13990bea1adc959ac76dba888de17adcf27c7ef45.js",
+      "sha256": "2ea675e7cfa0afc979170ea13990bea1adc959ac76dba888de17adcf27c7ef45"
+    },
+    {
+      "id": "douban",
+      "version": "0.1.0",
+      "name": {
+        "zh": "豆瓣",
+        "en": "Douban"
+      },
+      "hosts": [
+        "douban.com",
+        "douc.cc"
+      ],
+      "cookieDomain": ".douban.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "bc9939499096258ac3a35cee573dbef72b68f5bf3d1a1ec8296f74bb69afca16.js",
+      "sha256": "bc9939499096258ac3a35cee573dbef72b68f5bf3d1a1ec8296f74bb69afca16"
+    },
+    {
+      "id": "douyin",
+      "version": "0.1.0",
+      "name": {
+        "zh": "抖音",
+        "en": "Douyin"
+      },
+      "hosts": [
+        "douyin.com"
+      ],
+      "cookieDomain": ".douyin.com",
+      "keep": [
+        "modal_id"
+      ],
+      "priority": 100,
+      "entry": "dceeeedcabacbabd526de67cdcf5d2aa4cdc36c10e795086605d0e6b4912b573.js",
+      "sha256": "dceeeedcabacbabd526de67cdcf5d2aa4cdc36c10e795086605d0e6b4912b573"
+    },
+    {
+      "id": "facebook",
+      "version": "0.1.0",
+      "name": {
+        "zh": "Facebook",
+        "en": "Facebook"
+      },
+      "hosts": [
+        "facebook.com",
+        "fb.watch"
+      ],
+      "cookieDomain": ".facebook.com",
+      "keep": [
+        "v"
+      ],
+      "priority": 100,
+      "entry": "cadfdba7b3c8cdec0297fb0c77f7e4dcdda58d0fc9b92b4bf366a0abd5f2b006.js",
+      "sha256": "cadfdba7b3c8cdec0297fb0c77f7e4dcdda58d0fc9b92b4bf366a0abd5f2b006"
+    },
+    {
+      "id": "instagram",
+      "version": "0.1.0",
+      "name": {
+        "zh": "Instagram",
+        "en": "Instagram"
+      },
+      "hosts": [
+        "instagram.com"
+      ],
+      "cookieDomain": ".instagram.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "5eff69389e2a39d685043b92d0bf63d4db1f217d79288a256919e341bcaf095b.js",
+      "sha256": "5eff69389e2a39d685043b92d0bf63d4db1f217d79288a256919e341bcaf095b"
+    },
+    {
+      "id": "kuaishou",
+      "version": "0.1.0",
+      "name": {
+        "zh": "快手",
+        "en": "Kuaishou"
+      },
+      "hosts": [
+        "kuaishou.com",
+        "chenzhongtech.com"
+      ],
+      "cookieDomain": ".kuaishou.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "3dce53f2dc5739ef9af7aecad62334122bfd080c0a9688937727c4b04caa5a30.js",
+      "sha256": "3dce53f2dc5739ef9af7aecad62334122bfd080c0a9688937727c4b04caa5a30"
+    },
+    {
+      "id": "medium",
+      "version": "0.1.0",
+      "name": {
+        "zh": "Medium",
+        "en": "Medium"
+      },
+      "hosts": [
+        "medium.com"
+      ],
+      "cookieDomain": ".medium.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "333ccfcb3d4904d6ac290c7b3fb194df741a4dff9a07a8ee9751cf9aef298469.js",
+      "sha256": "333ccfcb3d4904d6ac290c7b3fb194df741a4dff9a07a8ee9751cf9aef298469"
+    },
+    {
+      "id": "pipix",
+      "version": "0.1.0",
+      "name": {
+        "zh": "皮皮虾",
+        "en": "Pipix"
+      },
+      "hosts": [
+        "pipix.com"
+      ],
+      "cookieDomain": ".pipix.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "807722c40bf143de83c17ac248b0fcf9011d034a8f2515614d5a748f6f78e9d1.js",
+      "sha256": "807722c40bf143de83c17ac248b0fcf9011d034a8f2515614d5a748f6f78e9d1"
+    },
+    {
+      "id": "snapchat",
+      "version": "0.1.0",
+      "name": {
+        "zh": "Snapchat",
+        "en": "Snapchat"
+      },
+      "hosts": [
+        "snapchat.com"
+      ],
+      "cookieDomain": ".snapchat.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "0080af1e9cb49308fe3969e24d57e194c203004e81f5609556c45c2439b77e83.js",
+      "sha256": "0080af1e9cb49308fe3969e24d57e194c203004e81f5609556c45c2439b77e83"
+    },
+    {
+      "id": "threads",
+      "version": "0.1.0",
+      "name": {
+        "zh": "Threads",
+        "en": "Threads"
+      },
+      "hosts": [
+        "threads.com",
+        "threads.net"
+      ],
+      "cookieDomain": ".threads.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "563aae10b93cfc5206c0846b51e3659259458a954714fa3dfffd191a3d8de1e3.js",
+      "sha256": "563aae10b93cfc5206c0846b51e3659259458a954714fa3dfffd191a3d8de1e3"
+    },
+    {
+      "id": "tieba",
+      "version": "0.1.0",
+      "name": {
+        "zh": "百度贴吧",
+        "en": "Baidu Tieba"
+      },
+      "hosts": [
+        "tieba.baidu.com"
+      ],
+      "cookieDomain": ".baidu.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "0fb93304278e93d0bff8e6099f670cf35ebf32a82b2a2b94e538520693321e38.js",
+      "sha256": "0fb93304278e93d0bff8e6099f670cf35ebf32a82b2a2b94e538520693321e38"
+    },
+    {
+      "id": "tiktok",
+      "version": "0.1.0",
+      "name": {
+        "zh": "TikTok",
+        "en": "TikTok"
+      },
+      "hosts": [
+        "tiktok.com"
+      ],
+      "cookieDomain": ".tiktok.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "d8e4fb0d98f7804cdc0482c714a4ec46a24f5b5e5a4b17cafa0221ce57205a2e.js",
+      "sha256": "d8e4fb0d98f7804cdc0482c714a4ec46a24f5b5e5a4b17cafa0221ce57205a2e"
+    },
+    {
+      "id": "toutiao",
+      "version": "0.1.0",
+      "name": {
+        "zh": "今日头条",
+        "en": "Toutiao"
+      },
+      "hosts": [
+        "toutiao.com",
+        "toutiaocdn.cn"
+      ],
+      "cookieDomain": ".toutiao.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "5688c9d2ce7ce8c34c59cf775c21df4bebc56b6582e785b042ba9c9c22d63a12.js",
+      "sha256": "5688c9d2ce7ce8c34c59cf775c21df4bebc56b6582e785b042ba9c9c22d63a12"
+    },
+    {
+      "id": "twitter",
+      "version": "0.1.0",
+      "name": {
+        "zh": "X / Twitter",
+        "en": "X / Twitter"
+      },
+      "hosts": [
+        "x.com",
+        "twitter.com",
+        "fixupx.com"
+      ],
+      "cookieDomain": ".x.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "67798963c8588c18f4b35e7e9d4df5cb96c45885a786119b44f5f3350c632489.js",
+      "sha256": "67798963c8588c18f4b35e7e9d4df5cb96c45885a786119b44f5f3350c632489"
+    },
+    {
+      "id": "weibo",
+      "version": "0.1.0",
+      "name": {
+        "zh": "微博",
+        "en": "Weibo"
+      },
+      "hosts": [
+        "weibo.com",
+        "weibo.cn"
+      ],
+      "cookieDomain": ".weibo.com",
+      "keep": [
+        "fid"
+      ],
+      "priority": 100,
+      "entry": "8db943ddaacbd0f9a546d80876cf65889904094ccf50e93df164c3ee11a20709.js",
+      "sha256": "8db943ddaacbd0f9a546d80876cf65889904094ccf50e93df164c3ee11a20709"
+    },
+    {
+      "id": "weixin",
+      "version": "0.1.0",
+      "name": {
+        "zh": "微信公众号",
+        "en": "WeChat articles"
+      },
+      "hosts": [
+        "mp.weixin.qq.com"
+      ],
+      "cookieDomain": ".weixin.qq.com",
+      "keep": [
+        "__biz",
+        "mid",
+        "idx",
+        "sn"
+      ],
+      "priority": 200,
+      "entry": "9c825cf205bbeb2dbfb390208639e907a48731c9443b120f943a27a577178f57.js",
+      "sha256": "9c825cf205bbeb2dbfb390208639e907a48731c9443b120f943a27a577178f57"
+    },
+    {
+      "id": "weixin_channels",
+      "version": "0.1.0",
+      "name": {
+        "zh": "微信视频号",
+        "en": "WeChat Channels"
+      },
+      "hosts": [
+        "weixin.qq.com",
+        "channels.weixin.qq.com"
+      ],
+      "cookieDomain": "yuanbao.tencent.com",
+      "keep": [
+        "id"
+      ],
+      "priority": 100,
+      "entry": "eef00ae372f891d8e122632b77d4b585f42a32159752448cee3758d0f200fd0f.js",
+      "sha256": "eef00ae372f891d8e122632b77d4b585f42a32159752448cee3758d0f200fd0f"
+    },
+    {
+      "id": "xhs",
+      "version": "0.1.0",
+      "name": {
+        "zh": "小红书",
+        "en": "Xiaohongshu"
+      },
+      "hosts": [
+        "xiaohongshu.com",
+        "xhslink.com",
+        "xhslink.cn"
+      ],
+      "cookieDomain": ".xiaohongshu.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "7d217e0f06ec17e12a79048ebed7ee9a6df3f0607dba9e7acebcdd43c4fc6ce8.js",
+      "sha256": "7d217e0f06ec17e12a79048ebed7ee9a6df3f0607dba9e7acebcdd43c4fc6ce8"
+    },
+    {
+      "id": "xiaoheihe",
+      "version": "0.1.0",
+      "name": {
+        "zh": "小黑盒",
+        "en": "Xiaoheihe"
+      },
+      "hosts": [
+        "xiaoheihe.cn"
+      ],
+      "cookieDomain": ".xiaoheihe.cn",
+      "keep": [],
+      "priority": 100,
+      "entry": "28986d4af2731214c4c095ac4ad611ccc96fbb29e832f1ec09c9c6df32f6d87e.js",
+      "sha256": "28986d4af2731214c4c095ac4ad611ccc96fbb29e832f1ec09c9c6df32f6d87e"
+    },
+    {
+      "id": "youtube",
+      "version": "0.1.0",
+      "name": {
+        "zh": "YouTube",
+        "en": "YouTube"
+      },
+      "hosts": [
+        "youtube.com",
+        "youtu.be",
+        "youtube-nocookie.com"
+      ],
+      "cookieDomain": ".youtube.com",
+      "keep": [
+        "v"
+      ],
+      "priority": 100,
+      "entry": "b171feaa2d3dc67132d5214dca88723f0ef1c5a2df711305066a2a5530169fd3.js",
+      "sha256": "b171feaa2d3dc67132d5214dca88723f0ef1c5a2df711305066a2a5530169fd3"
+    },
+    {
+      "id": "zhihu",
+      "version": "0.1.0",
+      "name": {
+        "zh": "知乎",
+        "en": "Zhihu"
+      },
+      "hosts": [
+        "zhihu.com"
+      ],
+      "cookieDomain": ".zhihu.com",
+      "keep": [],
+      "priority": 100,
+      "entry": "5375b15e697d2d9b6acf45400cc386988b084ca78c2f50b0f6a3b02650cdee15.js",
+      "sha256": "5375b15e697d2d9b6acf45400cc386988b084ca78c2f50b0f6a3b02650cdee15"
+    },
+    {
+      "id": "zuiyou",
+      "version": "0.1.0",
+      "name": {
+        "zh": "最右",
+        "en": "Zuiyou"
+      },
+      "hosts": [
+        "xiaochuankeji.cn",
+        "izuiyou.com"
+      ],
+      "cookieDomain": ".xiaochuankeji.cn",
+      "keep": [
+        "pid"
+      ],
+      "priority": 100,
+      "entry": "4447383211da2cd89e242dc684989b6b45946a549bd566dd5497f15298c1d957.js",
+      "sha256": "4447383211da2cd89e242dc684989b6b45946a549bd566dd5497f15298c1d957"
+    },
+    {
+      "id": "generic_web",
+      "version": "0.1.0",
+      "name": {
+        "zh": "网页",
+        "en": "Web page"
+      },
+      "hosts": [],
+      "cookieDomain": null,
+      "keep": [],
+      "priority": 0,
+      "entry": "06d09516897a6e5ef5ce1f98a4cad1b3d97fe61f3faf2937f8fca5671e373ab0.js",
+      "sha256": "06d09516897a6e5ef5ce1f98a4cad1b3d97fe61f3faf2937f8fca5671e373ab0"
+    }
+  ]
+}

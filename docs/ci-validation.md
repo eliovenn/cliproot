@@ -1,0 +1,68 @@
+# GitHub Actions 跨平台验证
+
+工作流：`.github/workflows/validate.yml`。在 `main` 推送、Pull Request 和手动 dispatch
+时执行；使用只读 contents 权限，不需要发布 token、站点 Cookie 或 Apple 签名证书。
+当前本地仓库没有 remote，配置文件存在不代表 GitHub 已经执行或所有平台已通过。
+
+## 矩阵
+
+| 任务 | 原生构建 | 运行验证 |
+| --- | --- | --- |
+| Ubuntu 24.04 x64 | Linux debug | Xvfb 中运行最终应用的集成验证 |
+| Windows 2025 x64 | Windows debug | 原生桌面集成验证 |
+| macOS 15 Intel | macOS x64 debug | 原生桌面集成验证 |
+| macOS 15 Apple Silicon | macOS arm64 debug | 原生桌面集成验证 |
+| Android API 28 | armv7、arm64、x86_64 split APK | x86_64 模拟器集成验证 |
+| Android API 35 | x86_64 集成应用 | x86_64 模拟器集成验证 |
+| iOS Apple Silicon | arm64 模拟器应用，不使用签名秘密 | 自动选择已安装 iPhone 模拟器并验证 |
+
+额外的 quality 任务做 Rust format／Clippy、资源 SHA-256、Flutter 静态分析与主机原生
+验证。没有源码网站网络用例。Windows arm64、Linux arm64、Android armv7／arm64 真机和
+iOS 真机不在这轮 hosted CI 的运行覆盖内；模拟器结果不替代它们。
+
+## 同一验证流程
+
+所有平台使用 `examples/flutter/lib/verification.dart`：25 个规则、固定正文提取、
+JSON v1、取消、超时、关闭和重开。真正安装／启动平台应用后才执行这些检查，
+“构建成功但运行失败”会使任务失败，不用 `continue-on-error` 掩盖失败。
+
+CI 先通过 `tools/ci/prepare_sdk.py` 打包源码 SDK，再用 override 让验证应用引用该包。
+这可以发现发行包漏掉生成绑定、内置资源或本地 crate 的问题，而非仅验证源码仓库布局。
+
+## 工具链与依赖
+
+- 固定 Flutter 3.50.0、Rust 1.99.1、Python 3.12、Node 24；Node 仅用于已有 SDK 打包工具。
+- Android 使用 JDK 21、SDK 36、NDK 28.2.13676358、主机 libclang 和 KVM。
+- iOS 也没有附带 rquickjs C 绑定，故按目标启用 bindgen。SDK hook 使用 `xcrun`
+  查询所选设备／模拟器 SDK 的 sysroot，编译仍交给公开的 Native Assets builder。
+- Windows 使用 runner 自带 Visual Studio，Apple 平台使用其 Xcode 环境。
+- 根目录 `RUSTUP_TOOLCHAIN` 与任务所需 targets 避免为生成／测试一个端安装全部交叉目标。
+- 外部 Actions 固定到核对过的 commit SHA；变更版本时同时核对输入、runner 支持和文档。
+
+Apple、Windows 的新配置必须以 GitHub 实际运行结果为准；在 Linux 上静态检查 YAML
+不能证明这些端已经能运行。
+
+## 本地收尾验证
+
+工作流已通过 actionlint 1.7.12 检查，两个 Flutter 包静态分析与 Rust Clippy 均通过。
+使用打包后的独立 SDK 完成了 Linux 主机原生测试、普通应用构建和 `flutter drive`
+集成运行。driver 已保存 JSON 报告，确认规则、正文、JSON v1、取消、超时、关闭和重开
+检查全部通过。运行结束后恢复示例的源码开发依赖，不把临时绝对路径写入 Git 锁文件。
+
+这些是本地 Linux 结果，尚未启动远端 Actions，也不是其他矩阵任务的成功结果。
+
+## 产物与日志
+
+正常应用先构建并归档，再构建测试入口。桌面／模拟器应用用 tar.gz 保存可执行权限和
+symlink，Android split APK 也归档。各任务上传自己的 `validation-results/`，包括真实
+命令日志、集成 driver 的 JSON 报告和正常构建产物；默认保留 7 天，矩阵名称互不冲突。
+这是 Actions Artifacts，不会提交二进制到 Git，也不会自动发布 Release 或 pub 包。
+
+## 启用
+
+1. 用户在 GitHub 创建并配置仓库 remote。
+2. 提交源码、生成资源、平台验证工程和 workflow，并推到 `main`。
+3. 在 Actions 页查看各矩阵任务和 Artifacts；也可通过 `workflow_dispatch` 手动运行。
+4. 首次失败时按日志修复对应端，全部目标通过后再声明 CI 覆盖范围。
+
+本代理不会因为配置 CI 自动创建远程仓库、提交、推送或放入任何凭据。

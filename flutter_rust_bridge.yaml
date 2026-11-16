@@ -1,0 +1,16 @@
+rust_input: crate::api
+rust_root: crates/cliproot-frb
+rust_output: crates/cliproot-frb/src/frb_generated.rs
+dart_output: packages/flutter/lib/src/rust
+dart_root: packages/flutter
+dart_entrypoint_class_name: RustLib
+type_64bit_int: true
+web: false
+build_runner: false
+auto_upgrade_dependency: false
+dart_fix: false
+stop_on_error: true
+dart_preamble: |
+  // Copyright (c) 2026 Cliproot contributors. SPDX-License-Identifier: MIT
+  // ignore_for_file: inference_failure_on_instance_creation
+rust_preamble: '// Copyright (c) 2026 Cliproot contributors. SPDX-License-Identifier: MIT'
