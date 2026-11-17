@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:code_assets/code_assets.dart';
 import 'package:flutter_rust_bridge_hooks/flutter_rust_bridge_hooks.dart';
 
+import 'windows_cargo.dart';
+
 void main(List<String> args) async {
   await build(args, (input, output) async {
     if (!input.config.buildCodeAssets) return;
@@ -15,6 +17,15 @@ void main(List<String> args) async {
         ? 'rust/crates/cliproot-frb'
         : '../../crates/cliproot-frb';
     final cargoEnvironment = <String, String>{};
+    final cargoArguments = <String>['--locked'];
+    if (input.config.code.targetOS == OS.windows) {
+      final configuration = windowsCargoPathConfiguration(
+        input.packageRoot,
+        Platform.environment,
+      );
+      cargoArguments.addAll(configuration.arguments);
+      cargoEnvironment.addAll(configuration.environment);
+    }
     if (input.config.code.targetOS == OS.iOS) {
       // Only query the SDK location; compilation remains owned by the public
       // Rust Native Assets builder. iOS has no bundled rquickjs C bindings.
@@ -40,7 +51,7 @@ void main(List<String> args) async {
     await FlutterRustBridgeNativeAssetsBuilder(
       cratePath: cratePath,
       assetName: 'src/native/native_library.g.dart',
-      extraCargoBuildArgs: const ['--locked'],
+      extraCargoBuildArgs: cargoArguments,
       extraCargoEnvironmentVariables: cargoEnvironment,
     ).run(input: input, output: output);
   });

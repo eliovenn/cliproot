@@ -5,6 +5,13 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      platform:
+        description: Validation scope
+        type: choice
+        required: true
+        default: all
+        options: [all, windows]
 
 permissions:
   contents: read
@@ -21,6 +28,7 @@ env:
 jobs:
   quality:
     name: Static checks and host native test
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -46,7 +54,7 @@ jobs:
       - name: Analyze validation application
         run: python tools/ci/run_flutter.py --name analyze -- analyze
       - name: Check Dart formatting
-        run: dart format --output=none --set-exit-if-changed packages/flutter/lib packages/flutter/hook packages/flutter/tool examples/flutter/lib examples/flutter/test examples/flutter/integration_test examples/flutter/test_driver
+        run: dart format --output=none --set-exit-if-changed packages/flutter/lib packages/flutter/hook packages/flutter/tool packages/flutter/test examples/flutter/lib examples/flutter/test examples/flutter/integration_test examples/flutter/test_driver
       - name: Run native loading and lifecycle checks
         run: python tools/ci/run_flutter.py --name host-native-test -- test test/native_loading_test.dart --reporter expanded --no-pub
       - name: Upload check logs
@@ -59,6 +67,7 @@ jobs:
 
   desktop:
     name: ${{ matrix.label }} build and run
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     strategy:
@@ -69,10 +78,6 @@ jobs:
             label: linux-x64
             platform: linux
             source: examples/flutter/build/linux/x64/debug/bundle
-          - runner: windows-2025
-            label: windows-x64
-            platform: windows
-            source: examples/flutter/build/windows/x64/runner/Debug
           - runner: macos-15-intel
             label: macos-x64
             platform: macos
@@ -114,8 +119,41 @@ jobs:
           include-hidden-files: true
           retention-days: 7
 
+  windows:
+    name: windows-x64 build and run
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-validation
+      - name: Check Windows path remapping
+        working-directory: packages/flutter
+        run: |
+          flutter pub get
+          dart test test/hook/windows_cargo_test.dart --reporter expanded
+      - name: Build normal validation application
+        run: python tools/ci/run_flutter.py --name build -- --verbose build windows --debug --no-pub
+      - name: Archive normal build before integration test
+        run: python tools/ci/archive_build.py --name windows-x64 --source examples/flutter/build/windows/x64/runner/Debug
+      - name: Run packaged validation on Windows
+        run: python tools/ci/run_flutter.py --name integration -- --verbose drive --driver test_driver/integration_test.dart --target integration_test/native_loading_test.dart -d windows --no-pub
+      - name: Upload build and validation report
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: windows-x64-validation
+          path: |
+            examples/flutter/validation-results/
+            examples/flutter/.dart_tool/hooks_runner/**/stdout.txt
+            examples/flutter/.dart_tool/hooks_runner/**/stderr.txt
+          include-hidden-files: true
+          retention-days: 7
+
   android:
     name: Android API ${{ matrix.api }} emulator
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all'
     runs-on: ubuntu-24.04
     timeout-minutes: 75
     strategy:
@@ -180,6 +218,7 @@ jobs:
 
   ios:
     name: iOS arm64 simulator build and run
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all'
     runs-on: macos-15
     timeout-minutes: 75
     steps:

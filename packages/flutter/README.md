@@ -60,3 +60,12 @@ dart run tool/ffigen.dart
 JDK、固定 Rust 工具链及 Android 标准库目标；Android 目标的 rquickjs C 绑定在构建时
 通过 bindgen 生成，主机还需可发现的 libclang。SDK 不要求用户手动复制 `.so`。
 构建验证与手机验证范围记录在项目的 `docs/android-build.md`。
+
+## Windows 构建兼容
+
+`native_toolchain_rust` 1.1.1 的依赖路径转换不能处理 Windows 的 `\\?\` 前缀。
+Windows hook 使用 Rust 的公开路径重映射选项，将整个卷根映射到同一文件的普通路径，
+避免在 Rust 编译完成后读取 dep-info 时崩溃；其他平台不启用这项适配。
+已有 `RUSTFLAGS`／`CARGO_ENCODED_RUSTFLAGS` 会保留。若消费者在 Cargo 配置中显式设置
+目标专属 `target.<triple>.rustflags`，它仍优先于默认 `build.rustflags`，需同时加入对应
+卷根的重映射，例如 `--remap-path-prefix=\\?\D:\=D:\`。本次修复尚待 Windows CI 确认。

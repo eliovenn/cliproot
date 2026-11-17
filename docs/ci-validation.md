@@ -4,6 +4,11 @@
 时执行；使用只读 contents 权限，不需要发布 token、站点 Cookie 或 Apple 签名证书。
 仓库已配置 GitHub remote；以实际运行记录为准，不把工作流存在视为所有平台已通过。
 
+手动运行支持 `platform: all`／`windows`。选择 `windows` 时只分配 Windows runner，
+quality、其他桌面端、Android 和 iOS 任务跳过，不启动它们的构建或测试。
+推送 `main` 和 Pull Request 仍默认全平台；Windows 专属修复先推送调试分支，再针对
+该分支手动运行 `windows`，避免为一次单端调试触发全平台任务。
+
 ## 矩阵
 
 | 任务 | 原生构建 | 运行验证 |
@@ -68,7 +73,17 @@ Apple、Windows 的新配置必须以 GitHub 实际运行结果为准；在 Linu
 - Windows x64：日志仅显示 Native Assets 构建失败，尚不能确认底层原因。
   本次启用 Flutter 详细日志并归档 hook 的 stdout／stderr，待重跑后定位，不宣称已修复。
 
-上述配置修复尚未通过新的远端运行验证，不自动提交、推送或触发 Actions。
+2026-11-17 的 [运行 #2](https://github.com/eliovenn/cliproot/actions/runs/43997842124)
+中，quality、Android API 28／35、iOS、Linux 和两个 macOS 任务均已通过；只剩 Windows。
+完整 hook 日志确认 Rust 编译成功，失败发生在 `native_toolchain_rust` 1.1.1 的
+`DependencyDiscoverer.discover`：`path.toUri` 将 `\\?\` 长路径前缀误当作 UNC 主机名，
+随后抛出 `FormatException: Invalid character`。
+
+Windows hook 现在通过 Rust 公开的 `--remap-path-prefix` 选项，将完整卷根的 verbatim
+路径映射回同一文件的普通 Windows 路径。仍使用原 FRB builder，保留依赖追踪，
+不修改第三方包缓存、不忽略异常，也不改变其他平台的 Cargo 参数。
+Windows 任务增加路径配置回归检查，以及一个无外部依赖、完全离线的小型 Cargo
+dep-info 复现；再构建和运行原来的验证应用。本次 Windows 修复仍待新的 Windows CI 确认。
 
 ## 产物与日志
 
@@ -86,6 +101,7 @@ symlink，Android split APK 也归档。各任务上传自己的 `validation-res
 1. 用户在 GitHub 创建并配置仓库 remote。
 2. 提交源码、生成资源、平台验证工程和 workflow，并推到 `main`。
 3. 在 Actions 页查看各矩阵任务和 Artifacts；也可通过 `workflow_dispatch` 手动运行。
+   Windows 单端调试选择目标分支及 `platform: windows`；需要完整验证时选择 `all`。
 4. 首次失败时按日志修复对应端，全部目标通过后再声明 CI 覆盖范围。
 
 本代理不会因为配置 CI 自动创建远程仓库、提交、推送或放入任何凭据。
