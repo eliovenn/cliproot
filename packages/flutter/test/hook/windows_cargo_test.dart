@@ -118,9 +118,11 @@ edition = "2024"
         environment: environment,
       );
       expect(result.exitCode, 0, reason: result.stderr.toString());
-      return File(
-        path.join(target, 'debug', 'cliproot_path_probe.d'),
-      ).readAsString();
+      final dependencyFile = Directory(path.join(target, 'debug'))
+          .listSync()
+          .whereType<File>()
+          .singleWhere((file) => path.extension(file.path) == '.d');
+      return dependencyFile.readAsString();
     }
 
     final original = await build('original', [], {});
