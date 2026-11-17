@@ -2,16 +2,17 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:code_assets/code_assets.dart';
+import 'package:flutter_rust_bridge_hooks/flutter_rust_bridge_hooks.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../hook/windows_cargo.dart';
 
 void main() {
-  final packageRoot = Uri.file(r'D:\a\cliproot\sdk\', windows: true);
-  const flag = r'--remap-path-prefix=\\?\D:\=D:\';
+  final workspace = Uri.file(r'D:\a\cliproot\sdk\rust\', windows: true);
 
-  group('Windows Cargo path configuration', () {
+  group('Windows Cargo dependency configuration', () {
     test('reproduces the upstream verbatim path conversion failure', () {
       expect(
         () => path.windows.toUri(r'\\?\D:\a\cliproot\resources\manifest.json'),
@@ -19,68 +20,59 @@ void main() {
       );
     });
 
-    test('remaps the complete drive root without changing physical paths', () {
-      final configuration = windowsCargoPathConfiguration(packageRoot, {});
-      expect(configuration.arguments, [
+    test('uses the verbatim workspace root as the dep-info base', () {
+      expect(windowsCargoDependencyArguments(workspace), [
         '--config',
-        'build.rustflags=${jsonEncode([flag])}',
+        'build.dep-info-basedir=${jsonEncode(r'\\?\D:\a\cliproot\sdk\rust\')}',
       ]);
-      expect(configuration.environment, isEmpty);
     });
 
-    test('supports UNC volume roots and spaces through Cargo configuration', () {
+    test('supports UNC workspace paths and spaces', () {
       final root = Uri.file(r'\\server\shared files\sdk\', windows: true);
-      final configuration = windowsCargoPathConfiguration(root, {});
-      expect(configuration.arguments, [
+      expect(windowsCargoDependencyArguments(root), [
         '--config',
-        'build.rustflags=${jsonEncode([r'--remap-path-prefix=\\?\UNC\server\shared files=\\server\shared files'])}',
+        'build.dep-info-basedir=${jsonEncode(r'\\?\UNC\server\shared files\sdk\')}',
       ]);
-    });
-
-    test('preserves encoded rustflags and their precedence', () {
-      final inherited = {
-        'CARGO_ENCODED_RUSTFLAGS':
-            '-C\u001flink-arg=C:\\shared files\\library.lib',
-        'RUSTFLAGS': '--cfg ignored_by_cargo',
-      };
-      final configuration = windowsCargoPathConfiguration(
-        packageRoot,
-        inherited,
-      );
-      expect(configuration.arguments, isEmpty);
-      expect(
-        configuration.environment['CARGO_ENCODED_RUSTFLAGS'],
-        '-C\u001flink-arg=C:\\shared files\\library.lib\u001f$flag',
-      );
-      expect(inherited['RUSTFLAGS'], '--cfg ignored_by_cargo');
-    });
-
-    test('preserves whitespace-separated rustflags', () {
-      final configuration = windowsCargoPathConfiguration(packageRoot, {
-        'RUSTFLAGS': '  --cfg custom_build\t-C debuginfo=1 ',
-      });
-      expect(configuration.arguments, isEmpty);
-      expect(
-        configuration.environment['CARGO_ENCODED_RUSTFLAGS'],
-        '--cfg\u001fcustom_build\u001f-C\u001fdebuginfo=1\u001f$flag',
-      );
-    });
-
-    test('accepts intentionally empty encoded rustflags', () {
-      final configuration = windowsCargoPathConfiguration(packageRoot, {
-        'CARGO_ENCODED_RUSTFLAGS': '',
-        'RUSTFLAGS': '--cfg ignored_by_cargo',
-      });
-      expect(configuration.environment['CARGO_ENCODED_RUSTFLAGS'], flag);
     });
 
     test('rejects paths without a Windows volume root', () {
       expect(
-        () => windowsCargoPathConfiguration(
+        () => windowsCargoDependencyArguments(
           Uri.file('/tmp/sdk', windows: false),
-          {},
         ),
         throwsArgumentError,
+      );
+    });
+
+    test('resolves relative dependencies and preserves native assets', () {
+      final nativeOutput = BuildOutputBuilder();
+      final absolute = workspace.resolve('crates/cliproot-frb/Cargo.toml');
+      nativeOutput.dependencies.addAll([
+        Uri(path: 'resources/bootstrap/manifest.json'),
+        absolute,
+      ]);
+      nativeOutput.assets.code.add(
+        CodeAsset(
+          package: 'cliproot_flutter',
+          name: 'src/native/native_library.g.dart',
+          linkMode: DynamicLoadingBundled(),
+          file: workspace.resolve('cliproot_frb.dll'),
+        ),
+      );
+      final output = BuildOutputBuilder();
+      copyWindowsCargoOutput(nativeOutput.build(), output, workspace);
+      final result = output.build();
+      expect(result.dependencies, [
+        workspace.resolve('resources/bootstrap/manifest.json'),
+        absolute,
+      ]);
+      expect(
+        result.assets.code.single.id,
+        'package:cliproot_flutter/src/native/native_library.g.dart',
+      );
+      expect(
+        result.assets.code.single.file,
+        workspace.resolve('cliproot_frb.dll'),
       );
     });
   });
@@ -133,13 +125,12 @@ edition = "2024"
 
     final original = await build('original', [], {});
     expect(original, contains(r'\\?\'));
-    final configuration = windowsCargoPathConfiguration(package.uri, {});
-    final remapped = await build(
-      'remapped',
-      configuration.arguments,
-      configuration.environment,
+    final normalized = await build(
+      'normalized',
+      windowsCargoDependencyArguments(temporary.uri),
+      {},
     );
-    expect(remapped, isNot(contains(r'\\?\')));
-    expect(remapped, contains(resource.path.replaceAll(' ', r'\ ')));
+    expect(normalized, isNot(contains(r'\\?\')));
+    expect(normalized, contains('embedded.txt'));
   }, skip: !Platform.isWindows);
 }

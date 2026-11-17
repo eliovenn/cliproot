@@ -64,8 +64,7 @@ JDK、固定 Rust 工具链及 Android 标准库目标；Android 目标的 rquic
 ## Windows 构建兼容
 
 `native_toolchain_rust` 1.1.1 的依赖路径转换不能处理 Windows 的 `\\?\` 前缀。
-Windows hook 使用 Rust 的公开路径重映射选项，将整个卷根映射到同一文件的普通路径，
-避免在 Rust 编译完成后读取 dep-info 时崩溃；其他平台不启用这项适配。
-已有 `RUSTFLAGS`／`CARGO_ENCODED_RUSTFLAGS` 会保留。若消费者在 Cargo 配置中显式设置
-目标专属 `target.<triple>.rustflags`，它仍优先于默认 `build.rustflags`，需同时加入对应
-卷根的重映射，例如 `--remap-path-prefix=\\?\D:\=D:\`。本次修复尚待 Windows CI 确认。
+Windows hook 使用 Cargo 公开的 `build.dep-info-basedir` 配置，将 workspace 的 verbatim
+依赖路径写成相对路径，然后通过 Hooks 的公开输出 API 解析回原文件的绝对 URI。
+不修改任何 rustflags，仍复用 FRB builder 并保留其资产及依赖追踪；其他平台不启用
+这项适配。本次修复尚待 Windows CI 确认。

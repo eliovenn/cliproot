@@ -79,11 +79,15 @@ Apple、Windows 的新配置必须以 GitHub 实际运行结果为准；在 Linu
 `DependencyDiscoverer.discover`：`path.toUri` 将 `\\?\` 长路径前缀误当作 UNC 主机名，
 随后抛出 `FormatException: Invalid character`。
 
-Windows hook 现在通过 Rust 公开的 `--remap-path-prefix` 选项，将完整卷根的 verbatim
-路径映射回同一文件的普通 Windows 路径。仍使用原 FRB builder，保留依赖追踪，
-不修改第三方包缓存、不忽略异常，也不改变其他平台的 Cargo 参数。
+Windows 首次定向 [运行 #3](https://github.com/eliovenn/cliproot/actions/runs/44009474953)
+证明 compiler 的路径重映射不足以消除 Cargo dep-info 中的 verbatim 路径，未进入应用构建。
+Windows hook 改为使用 Cargo 公开的 `build.dep-info-basedir` 配置，先将 workspace 的
+verbatim 依赖路径写成相对路径，再通过 Hooks 的公开输出 API 解析回绝对 URI。
+仍使用原 FRB builder，保留资产及依赖追踪，不改第三方缓存、不忽略异常、不修改 rustflags，
+也不改变其他平台的 Cargo 参数。
 Windows 任务增加路径配置回归检查，以及一个无外部依赖、完全离线的小型 Cargo
-dep-info 复现；再构建和运行原来的验证应用。本次 Windows 修复仍待新的 Windows CI 确认。
+dep-info 复现；纯 Dart 入口先执行这些检查，不提前启动 SDK 的 build hook。
+然后构建和运行原来的验证应用。本次 Windows 修复仍待新的 Windows CI 确认。
 
 ## 产物与日志
 
@@ -94,6 +98,8 @@ symlink，Android split APK 也归档。各任务上传自己的 `validation-res
 `.dart_tool/hooks_runner/` 中的 `stdout.txt`／`stderr.txt`，不上传整个隐藏缓存目录。
 下载后普通日志和产物位于 `validation-results/`，底层日志位于
 `.dart_tool/hooks_runner/`；即使构建失败也会上传，便于查看真正的 Cargo／编译器错误。
+Windows 另收集 SDK hook 日志与 `cliproot_frb.d`，因此其归档保留
+`examples/flutter/`、`packages/flutter/` 与 `target/native/` 的仓库相对目录。
 这是 Actions Artifacts，不会提交二进制到 Git，也不会自动发布 Release 或 pub 包。
 
 ## 启用

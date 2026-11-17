@@ -18,13 +18,11 @@ void main(List<String> args) async {
         : '../../crates/cliproot-frb';
     final cargoEnvironment = <String, String>{};
     final cargoArguments = <String>['--locked'];
-    if (input.config.code.targetOS == OS.windows) {
-      final configuration = windowsCargoPathConfiguration(
-        input.packageRoot,
-        Platform.environment,
-      );
-      cargoArguments.addAll(configuration.arguments);
-      cargoEnvironment.addAll(configuration.environment);
+    final windowsWorkspace = input.config.code.targetOS == OS.windows
+        ? input.packageRoot.resolve('$cratePath/../../')
+        : null;
+    if (windowsWorkspace != null) {
+      cargoArguments.addAll(windowsCargoDependencyArguments(windowsWorkspace));
     }
     if (input.config.code.targetOS == OS.iOS) {
       // Only query the SDK location; compilation remains owned by the public
@@ -48,11 +46,17 @@ void main(List<String> args) async {
       cargoEnvironment['BINDGEN_EXTRA_CLANG_ARGS'] =
           '$existingArgs -isysroot ${jsonEncode(sdkRoot)}'.trim();
     }
+    final nativeOutput = windowsWorkspace != null
+        ? BuildOutputBuilder()
+        : output;
     await FlutterRustBridgeNativeAssetsBuilder(
       cratePath: cratePath,
       assetName: 'src/native/native_library.g.dart',
       extraCargoBuildArgs: cargoArguments,
       extraCargoEnvironmentVariables: cargoEnvironment,
-    ).run(input: input, output: output);
+    ).run(input: input, output: nativeOutput);
+    if (windowsWorkspace != null) {
+      copyWindowsCargoOutput(nativeOutput.build(), output, windowsWorkspace);
+    }
   });
 }

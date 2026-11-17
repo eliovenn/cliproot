@@ -128,11 +128,11 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-validation
-      - name: Check Windows path remapping
+      - name: Check Windows dependency path compatibility
         working-directory: packages/flutter
         run: |
           flutter pub get
-          dart test test/hook/windows_cargo_test.dart --reporter expanded
+          dart --packages=.dart_tool/package_config.json test/hook/windows_cargo_test.dart
       - name: Build normal validation application
         run: python tools/ci/run_flutter.py --name build -- --verbose build windows --debug --no-pub
       - name: Archive normal build before integration test
@@ -148,6 +148,9 @@ jobs:
             examples/flutter/validation-results/
             examples/flutter/.dart_tool/hooks_runner/**/stdout.txt
             examples/flutter/.dart_tool/hooks_runner/**/stderr.txt
+            packages/flutter/.dart_tool/hooks_runner/**/stdout.txt
+            packages/flutter/.dart_tool/hooks_runner/**/stderr.txt
+            target/native/x86_64-pc-windows-msvc/release/cliproot_frb.d
           include-hidden-files: true
           retention-days: 7
 
