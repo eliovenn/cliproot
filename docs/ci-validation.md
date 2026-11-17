@@ -100,7 +100,18 @@ Windows 任务补上 `PYTHONIOENCODING=utf-8`，继续定向验证；不改变�
 25 个 JS bundle 均为 CRLF 版本，与 manifest 的原始 SHA-256 不符；原始 LF 版本均未嵌入。
 按 Windows Git 的 `core.autocrlf=true` 也能复现相同的 25 项哈希不匹配。
 新增 `.gitattributes` 仅禁止内置生成资源的换行转换，并在 Windows 构建前执行现有资源哈希
-校验。不修改 bundle／manifest，不放宽 Rust 完整性检查，应用初始化仍待下一轮 CI 确认。
+校验。不修改 bundle／manifest，也不放宽 Rust 完整性检查。
+
+[运行 #7](https://github.com/eliovenn/cliproot/actions/runs/44034822715) 对提交 `d2abb1e`
+执行 Windows x64 专项验证，全部步骤通过：25 个资源哈希、6 项路径回归、原生库和
+正常应用构建、正常产物归档，以及独立 SDK 的应用集成运行。只有 Windows runner 运行，
+quality、其他桌面端、Android 和 iOS 均为 `skipped`，未重跑其他平台。
+修复保留在 `fix/windows-native-assets` 分支，未合并 `main`，也未创建 PR。
+
+已对照 GitHub 的 SHA-256 核对并读取该运行的 Artifact。集成 `report.json` 确认
+`platform: windows`、25 个规则、release `0.1.0`，原生加载、正文提取、JSON v1、取消、
+超时、关闭和重开全部通过。正常应用的 DLL 也包含原始 LF 版本的全部 25 个 bundle，
+不再包含 CRLF 变体。验证仅使用应用自身的离线样本，不代表真实站点或 Windows arm64 已通过。
 
 ## 产物与日志
 
