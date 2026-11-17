@@ -18,7 +18,8 @@ void main(List<String> args) async {
         : '../../crates/cliproot-frb';
     final cargoEnvironment = <String, String>{};
     final cargoArguments = <String>['--locked'];
-    final windowsWorkspace = input.config.code.targetOS == OS.windows
+    final windowsWorkspace =
+        Platform.isWindows && input.config.code.targetOS == OS.windows
         ? input.packageRoot.resolve('$cratePath/../../')
         : null;
     if (windowsWorkspace != null) {

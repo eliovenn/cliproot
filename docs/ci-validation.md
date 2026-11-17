@@ -87,7 +87,12 @@ verbatim 依赖路径写成相对路径，再通过 Hooks 的公开输出 API �
 也不改变其他平台的 Cargo 参数。
 Windows 任务增加路径配置回归检查，以及一个无外部依赖、完全离线的小型 Cargo
 dep-info 复现；纯 Dart 入口先执行这些检查，不提前启动 SDK 的 build hook。
-然后构建和运行原来的验证应用。本次 Windows 修复仍待新的 Windows CI 确认。
+然后构建和运行原来的验证应用。
+
+[运行 #5](https://github.com/eliovenn/cliproot/actions/runs/44024954072) 已通过 Windows
+路径回归（含真实 Cargo dep-info 复现），原生库和正常应用均编译成功。
+任务随后在 Python 日志转发处因 CP1252 无法编码 Flutter 的 `√` 标志而失败，尚未运行应用。
+Windows 任务补上 `PYTHONIOENCODING=utf-8`，继续定向验证；不改变其他任务的 Python 环境。
 
 ## 产物与日志
 

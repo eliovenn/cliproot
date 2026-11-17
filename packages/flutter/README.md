@@ -67,4 +67,5 @@ JDK、固定 Rust 工具链及 Android 标准库目标；Android 目标的 rquic
 Windows hook 使用 Cargo 公开的 `build.dep-info-basedir` 配置，将 workspace 的 verbatim
 依赖路径写成相对路径，然后通过 Hooks 的公开输出 API 解析回原文件的绝对 URI。
 不修改任何 rustflags，仍复用 FRB builder 并保留其资产及依赖追踪；其他平台不启用
-这项适配。本次修复尚待 Windows CI 确认。
+这项适配。Windows CI 已通过路径回归与原生库／应用编译；运行验证仍在推进，详见
+项目的 `docs/ci-validation.md`。
