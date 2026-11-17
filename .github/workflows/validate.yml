@@ -93,21 +93,25 @@ jobs:
       - uses: ./.github/actions/setup-validation
       - name: Build normal validation application
         id: build
-        run: python tools/ci/run_flutter.py --name build -- build ${{ matrix.platform }} --debug --no-pub
+        run: python tools/ci/run_flutter.py --name build -- --verbose build ${{ matrix.platform }} --debug --no-pub
       - name: Archive normal build before integration test
         run: python tools/ci/archive_build.py --name ${{ matrix.label }} --source ${{ matrix.source }}
       - name: Run packaged validation on Linux
         if: runner.os == 'Linux'
-        run: xvfb-run -a python tools/ci/run_flutter.py --name integration -- drive --driver test_driver/integration_test.dart --target integration_test/native_loading_test.dart -d linux --no-pub
+        run: xvfb-run -a python tools/ci/run_flutter.py --name integration -- --verbose drive --driver test_driver/integration_test.dart --target integration_test/native_loading_test.dart -d linux --no-pub
       - name: Run packaged validation on Windows or macOS
         if: runner.os != 'Linux'
-        run: python tools/ci/run_flutter.py --name integration -- drive --driver test_driver/integration_test.dart --target integration_test/native_loading_test.dart -d ${{ matrix.platform }} --no-pub
+        run: python tools/ci/run_flutter.py --name integration -- --verbose drive --driver test_driver/integration_test.dart --target integration_test/native_loading_test.dart -d ${{ matrix.platform }} --no-pub
       - name: Upload build and validation report
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: ${{ matrix.label }}-validation
-          path: examples/flutter/validation-results/
+          path: |
+            examples/flutter/validation-results/
+            examples/flutter/.dart_tool/hooks_runner/**/stdout.txt
+            examples/flutter/.dart_tool/hooks_runner/**/stderr.txt
+          include-hidden-files: true
           retention-days: 7
 
   android:
@@ -126,6 +130,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Set up Android SDK command-line tools
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
+        with:
+          cmdline-tools-version: '12266719'
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - name: Install native generation tools
         run: |
           sudo apt-get update
@@ -137,7 +147,7 @@ jobs:
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358'
       - name: Build all declared Android ABI APKs
         if: matrix.api == 28
-        run: python tools/ci/run_flutter.py --name android-abis -- build apk --debug --split-per-abi --no-pub
+        run: python tools/ci/run_flutter.py --name android-abis -- --verbose build apk --debug --split-per-abi --no-pub
       - name: Archive Android APKs
         if: matrix.api == 28
         run: python tools/ci/archive_build.py --name android-abis --source examples/flutter/build/app/outputs/flutter-apk
@@ -155,13 +165,17 @@ jobs:
           profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           disable-animations: true
-          script: python tools/ci/run_flutter.py --name android-integration -- drive --driver test_driver/integration_test.dart --target integration_test/native_loading_test.dart -d emulator-5554 --no-pub
+          script: python tools/ci/run_flutter.py --name android-integration -- --verbose drive --driver test_driver/integration_test.dart --target integration_test/native_loading_test.dart -d emulator-5554 --no-pub
       - name: Upload APKs and emulator report
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: android-api-${{ matrix.api }}-validation
-          path: examples/flutter/validation-results/
+          path: |
+            examples/flutter/validation-results/
+            examples/flutter/.dart_tool/hooks_runner/**/stdout.txt
+            examples/flutter/.dart_tool/hooks_runner/**/stderr.txt
+          include-hidden-files: true
           retention-days: 7
 
   ios:
@@ -174,23 +188,28 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-validation
         with:
-          rust-targets: aarch64-apple-ios-sim
+          # A generic simulator build includes both Apple Silicon and Intel.
+          rust-targets: aarch64-apple-ios-sim x86_64-apple-ios
       - name: Provide host libclang for iOS binding generation
         run: |
           if ! brew list llvm >/dev/null 2>&1; then brew install llvm; fi
           echo "LIBCLANG_PATH=$(brew --prefix llvm)/lib" >> "$GITHUB_ENV"
       - name: Build simulator application without signing secrets
-        run: python tools/ci/run_flutter.py --name ios-build -- build ios --simulator --debug --no-codesign --no-pub
+        run: python tools/ci/run_flutter.py --name ios-build -- --verbose build ios --simulator --debug --no-codesign --no-pub
       - name: Archive simulator application
         run: python tools/ci/archive_build.py --name ios-arm64-simulator --source examples/flutter/build/ios/iphonesimulator/Runner.app
       - name: Select and boot available iPhone simulator
         run: python tools/ci/select_ios_simulator.py
       - name: Run native checks in simulator
-        run: python tools/ci/run_flutter.py --name ios-integration -- drive --driver test_driver/integration_test.dart --target integration_test/native_loading_test.dart -d "$CLIPROOT_IOS_DEVICE" --no-pub
+        run: python tools/ci/run_flutter.py --name ios-integration -- --verbose drive --driver test_driver/integration_test.dart --target integration_test/native_loading_test.dart -d "$CLIPROOT_IOS_DEVICE" --no-pub
       - name: Upload simulator build and report
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: ios-arm64-simulator-validation
-          path: examples/flutter/validation-results/
+          path: |
+            examples/flutter/validation-results/
+            examples/flutter/.dart_tool/hooks_runner/**/stdout.txt
+            examples/flutter/.dart_tool/hooks_runner/**/stderr.txt
+          include-hidden-files: true
           retention-days: 7

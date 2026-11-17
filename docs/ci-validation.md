@@ -2,7 +2,7 @@
 
 工作流：`.github/workflows/validate.yml`。在 `main` 推送、Pull Request 和手动 dispatch
 时执行；使用只读 contents 权限，不需要发布 token、站点 Cookie 或 Apple 签名证书。
-当前本地仓库没有 remote，配置文件存在不代表 GitHub 已经执行或所有平台已通过。
+仓库已配置 GitHub remote；以实际运行记录为准，不把工作流存在视为所有平台已通过。
 
 ## 矩阵
 
@@ -14,11 +14,12 @@
 | macOS 15 Apple Silicon | macOS arm64 debug | 原生桌面集成验证 |
 | Android API 28 | armv7、arm64、x86_64 split APK | x86_64 模拟器集成验证 |
 | Android API 35 | x86_64 集成应用 | x86_64 模拟器集成验证 |
-| iOS Apple Silicon | arm64 模拟器应用，不使用签名秘密 | 自动选择已安装 iPhone 模拟器并验证 |
+| iOS Apple Silicon | arm64/x64 通用模拟器应用，不使用签名秘密 | 自动选择已安装 iPhone 模拟器并在 arm64 上验证 |
 
 额外的 quality 任务做 Rust format／Clippy、资源 SHA-256、Flutter 静态分析与主机原生
 验证。没有源码网站网络用例。Windows arm64、Linux arm64、Android armv7／arm64 真机和
-iOS 真机不在这轮 hosted CI 的运行覆盖内；模拟器结果不替代它们。
+iOS 真机不在这轮 hosted CI 的运行覆盖内；iOS x64 模拟器仅构建，不运行验证。
+模拟器结果不替代真机结果。
 
 ## 同一验证流程
 
@@ -33,10 +34,14 @@ CI 先通过 `tools/ci/prepare_sdk.py` 打包源码 SDK，再用 override 让验
 
 - 固定 Flutter 3.50.0、Rust 1.99.1、Python 3.12、Node 24；Node 仅用于已有 SDK 打包工具。
 - Android 使用 JDK 21、SDK 36、NDK 28.2.13676358、主机 libclang 和 KVM。
+  `setup-android` 安装固定版本 command-line tools 并将 `sdkmanager`／`adb` 加入 PATH，
+  不依赖 hosted runner 的默认 PATH。
 - iOS 也没有附带 rquickjs C 绑定，故按目标启用 bindgen。SDK hook 使用 `xcrun`
   查询所选设备／模拟器 SDK 的 sysroot，编译仍交给公开的 Native Assets builder。
 - Windows 使用 runner 自带 Visual Studio，Apple 平台使用其 Xcode 环境。
 - 根目录 `RUSTUP_TOOLCHAIN` 与任务所需 targets 避免为生成／测试一个端安装全部交叉目标。
+  iOS 通用模拟器构建安装 `aarch64-apple-ios-sim` 和 `x86_64-apple-ios` 两个目标；
+  即使运行宿主为 arm64，也不能省略通用构建的 x64 标准库。
 - 外部 Actions 固定到核对过的 commit SHA；变更版本时同时核对输入、runner 支持和文档。
 
 Apple、Windows 的新配置必须以 GitHub 实际运行结果为准；在 Linux 上静态检查 YAML
@@ -49,13 +54,31 @@ Apple、Windows 的新配置必须以 GitHub 实际运行结果为准；在 Linu
 集成运行。driver 已保存 JSON 报告，确认规则、正文、JSON v1、取消、超时、关闭和重开
 检查全部通过。运行结束后恢复示例的源码开发依赖，不把临时绝对路径写入 Git 锁文件。
 
-这些是本地 Linux 结果，尚未启动远端 Actions，也不是其他矩阵任务的成功结果。
+这些是本地 Linux 结果，不是其他矩阵任务的成功结果。
+
+## 首次远端运行与修复
+
+2026-11-16 的 [运行 #1](https://github.com/eliovenn/cliproot/actions/runs/43891553311)
+中，quality、Linux x64、macOS x64／arm64 通过；其余任务失败：
+
+- Android API 28／35：SDK／NDK 安装步骤报 `sdkmanager: command not found`，
+  未进入 APK 构建或模拟器验证。本次补上 SDK command-line tools 初始化。
+- iOS：构建日志只显示 `cfg-if`／`libc` 编译失败；工作流也缺少通用模拟器构建所需的
+  x64 Rust 目标，本次补齐并启用详细日志，具体结果仍需重跑确认。
+- Windows x64：日志仅显示 Native Assets 构建失败，尚不能确认底层原因。
+  本次启用 Flutter 详细日志并归档 hook 的 stdout／stderr，待重跑后定位，不宣称已修复。
+
+上述配置修复尚未通过新的远端运行验证，不自动提交、推送或触发 Actions。
 
 ## 产物与日志
 
 正常应用先构建并归档，再构建测试入口。桌面／模拟器应用用 tar.gz 保存可执行权限和
 symlink，Android split APK 也归档。各任务上传自己的 `validation-results/`，包括真实
 命令日志、集成 driver 的 JSON 报告和正常构建产物；默认保留 7 天，矩阵名称互不冲突。
+平台构建／集成命令启用 `--verbose`。平台 Artifacts 另外只收集
+`.dart_tool/hooks_runner/` 中的 `stdout.txt`／`stderr.txt`，不上传整个隐藏缓存目录。
+下载后普通日志和产物位于 `validation-results/`，底层日志位于
+`.dart_tool/hooks_runner/`；即使构建失败也会上传，便于查看真正的 Cargo／编译器错误。
 这是 Actions Artifacts，不会提交二进制到 Git，也不会自动发布 Release 或 pub 包。
 
 ## 启用

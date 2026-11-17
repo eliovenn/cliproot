@@ -54,7 +54,7 @@ Flutter 独立源码包通过 `node tools/package-flutter.mjs` 准备，详见 S
 原生路径入口的 FFIgen 生成命令在 `packages/flutter/` 下执行 `dart run tool/ffigen.dart`。
 加载与宿主接入说明见 [Flutter 集成](docs/flutter-integration.md)。
 跨平台 CI 的目标、运行检查与 Artifacts 见 [CI 验证](docs/ci-validation.md)。
-当前没有配置 GitHub remote，不能将 workflow 已编写描述为远端验证已经通过。
+GitHub Actions 已有首次运行记录；部分平台仍失败，状态与修复记录见 CI 验证文档。
 
 ## 使用边界
 
