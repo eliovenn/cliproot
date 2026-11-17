@@ -94,6 +94,14 @@ dep-info 复现；纯 Dart 入口先执行这些检查，不提前启动 SDK 的
 任务随后在 Python 日志转发处因 CP1252 无法编码 Flutter 的 `√` 标志而失败，尚未运行应用。
 Windows 任务补上 `PYTHONIOENCODING=utf-8`，继续定向验证；不改变其他任务的 Python 环境。
 
+[运行 #6](https://github.com/eliovenn/cliproot/actions/runs/44030517083) 已通过路径回归、
+普通应用构建与归档，并真正启动 Windows 应用；日志输出不再因编码失败。
+集成验证在 `ParseHub.open` 返回 `sourceError`。核对该运行的正常应用 DLL 后，确认其中
+25 个 JS bundle 均为 CRLF 版本，与 manifest 的原始 SHA-256 不符；原始 LF 版本均未嵌入。
+按 Windows Git 的 `core.autocrlf=true` 也能复现相同的 25 项哈希不匹配。
+新增 `.gitattributes` 仅禁止内置生成资源的换行转换，并在 Windows 构建前执行现有资源哈希
+校验。不修改 bundle／manifest，不放宽 Rust 完整性检查，应用初始化仍待下一轮 CI 确认。
+
 ## 产物与日志
 
 正常应用先构建并归档，再构建测试入口。桌面／模拟器应用用 tar.gz 保存可执行权限和
