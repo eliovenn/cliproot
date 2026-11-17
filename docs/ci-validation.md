@@ -4,6 +4,11 @@
 时执行；使用只读 contents 权限，不需要发布 token、站点 Cookie 或 Apple 签名证书。
 仓库已配置 GitHub remote；以实际运行记录为准，不把工作流存在视为所有平台已通过。
 
+手动运行支持 `platform: all`／`windows`。选择 `windows` 时只分配 Windows runner，
+quality、其他桌面端、Android 和 iOS 任务跳过，不启动它们的构建或测试。
+推送 `main` 和 Pull Request 仍默认全平台；Windows 专属修复先推送调试分支，再针对
+该分支手动运行 `windows`，避免为一次单端调试触发全平台任务。
+
 ## 矩阵
 
 | 任务 | 原生构建 | 运行验证 |
@@ -68,7 +73,45 @@ Apple、Windows 的新配置必须以 GitHub 实际运行结果为准；在 Linu
 - Windows x64：日志仅显示 Native Assets 构建失败，尚不能确认底层原因。
   本次启用 Flutter 详细日志并归档 hook 的 stdout／stderr，待重跑后定位，不宣称已修复。
 
-上述配置修复尚未通过新的远端运行验证，不自动提交、推送或触发 Actions。
+2026-11-17 的 [运行 #2](https://github.com/eliovenn/cliproot/actions/runs/43997842124)
+中，quality、Android API 28／35、iOS、Linux 和两个 macOS 任务均已通过；只剩 Windows。
+完整 hook 日志确认 Rust 编译成功，失败发生在 `native_toolchain_rust` 1.1.1 的
+`DependencyDiscoverer.discover`：`path.toUri` 将 `\\?\` 长路径前缀误当作 UNC 主机名，
+随后抛出 `FormatException: Invalid character`。
+
+Windows 首次定向 [运行 #3](https://github.com/eliovenn/cliproot/actions/runs/44009474953)
+证明 compiler 的路径重映射不足以消除 Cargo dep-info 中的 verbatim 路径，未进入应用构建。
+Windows hook 改为使用 Cargo 公开的 `build.dep-info-basedir` 配置，先将 workspace 的
+verbatim 依赖路径写成相对路径，再通过 Hooks 的公开输出 API 解析回绝对 URI。
+仍使用原 FRB builder，保留资产及依赖追踪，不改第三方缓存、不忽略异常、不修改 rustflags，
+也不改变其他平台的 Cargo 参数。
+Windows 任务增加路径配置回归检查，以及一个无外部依赖、完全离线的小型 Cargo
+dep-info 复现；纯 Dart 入口先执行这些检查，不提前启动 SDK 的 build hook。
+然后构建和运行原来的验证应用。
+
+[运行 #5](https://github.com/eliovenn/cliproot/actions/runs/44024954072) 已通过 Windows
+路径回归（含真实 Cargo dep-info 复现），原生库和正常应用均编译成功。
+任务随后在 Python 日志转发处因 CP1252 无法编码 Flutter 的 `√` 标志而失败，尚未运行应用。
+Windows 任务补上 `PYTHONIOENCODING=utf-8`，继续定向验证；不改变其他任务的 Python 环境。
+
+[运行 #6](https://github.com/eliovenn/cliproot/actions/runs/44030517083) 已通过路径回归、
+普通应用构建与归档，并真正启动 Windows 应用；日志输出不再因编码失败。
+集成验证在 `ParseHub.open` 返回 `sourceError`。核对该运行的正常应用 DLL 后，确认其中
+25 个 JS bundle 均为 CRLF 版本，与 manifest 的原始 SHA-256 不符；原始 LF 版本均未嵌入。
+按 Windows Git 的 `core.autocrlf=true` 也能复现相同的 25 项哈希不匹配。
+新增 `.gitattributes` 仅禁止内置生成资源的换行转换，并在 Windows 构建前执行现有资源哈希
+校验。不修改 bundle／manifest，也不放宽 Rust 完整性检查。
+
+[运行 #7](https://github.com/eliovenn/cliproot/actions/runs/44034822715) 对提交 `d2abb1e`
+执行 Windows x64 专项验证，全部步骤通过：25 个资源哈希、6 项路径回归、原生库和
+正常应用构建、正常产物归档，以及独立 SDK 的应用集成运行。只有 Windows runner 运行，
+quality、其他桌面端、Android 和 iOS 均为 `skipped`，未重跑其他平台。
+修复保留在 `fix/windows-native-assets` 分支，未合并 `main`，也未创建 PR。
+
+已对照 GitHub 的 SHA-256 核对并读取该运行的 Artifact。集成 `report.json` 确认
+`platform: windows`、25 个规则、release `0.1.0`，原生加载、正文提取、JSON v1、取消、
+超时、关闭和重开全部通过。正常应用的 DLL 也包含原始 LF 版本的全部 25 个 bundle，
+不再包含 CRLF 变体。验证仅使用应用自身的离线样本，不代表真实站点或 Windows arm64 已通过。
 
 ## 产物与日志
 
@@ -79,6 +122,8 @@ symlink，Android split APK 也归档。各任务上传自己的 `validation-res
 `.dart_tool/hooks_runner/` 中的 `stdout.txt`／`stderr.txt`，不上传整个隐藏缓存目录。
 下载后普通日志和产物位于 `validation-results/`，底层日志位于
 `.dart_tool/hooks_runner/`；即使构建失败也会上传，便于查看真正的 Cargo／编译器错误。
+Windows 另收集 SDK hook 日志与 `cliproot_frb.d`，因此其归档保留
+`examples/flutter/`、`packages/flutter/` 与 `target/native/` 的仓库相对目录。
 这是 Actions Artifacts，不会提交二进制到 Git，也不会自动发布 Release 或 pub 包。
 
 ## 启用
@@ -86,6 +131,7 @@ symlink，Android split APK 也归档。各任务上传自己的 `validation-res
 1. 用户在 GitHub 创建并配置仓库 remote。
 2. 提交源码、生成资源、平台验证工程和 workflow，并推到 `main`。
 3. 在 Actions 页查看各矩阵任务和 Artifacts；也可通过 `workflow_dispatch` 手动运行。
+   Windows 单端调试选择目标分支及 `platform: windows`；需要完整验证时选择 `all`。
 4. 首次失败时按日志修复对应端，全部目标通过后再声明 CI 覆盖范围。
 
 本代理不会因为配置 CI 自动创建远程仓库、提交、推送或放入任何凭据。

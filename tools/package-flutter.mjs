@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sdk = resolve(root, 'packages/flutter');
-const required = ['lib/cliproot_flutter.dart', 'lib/src/rust/api.dart', 'lib/src/rust/frb_generated.dart', 'lib/src/rust/frb_generated.io.dart', 'lib/src/native/native_library.g.dart', 'lib/src/third_party/native_library.record_use_mapping.g.dart', 'src/native_library.h', 'hook/build.dart'];
+const required = ['lib/cliproot_flutter.dart', 'lib/src/rust/api.dart', 'lib/src/rust/frb_generated.dart', 'lib/src/rust/frb_generated.io.dart', 'lib/src/native/native_library.g.dart', 'lib/src/third_party/native_library.record_use_mapping.g.dart', 'src/native_library.h', 'hook/build.dart', 'hook/windows_cargo.dart'];
 for (const name of required) await access(resolve(sdk, name));
 const ignored = new Set(['.dart_tool', 'build', 'rust', '.git'].map(name => join(sdk, name)));
 const dist = resolve(root, 'dist');

@@ -9,7 +9,8 @@ Native Assets hook 使用官方 FRB hooks 构建原生库。FFIgen 生成的入�
 代码资产，再定位该已加载镜像的路径交给 FRB；不猜测库名、工作目录或 Cargo 输出目录。
 Linux x64 已完成自动加载与受限桥接验证，Folinel 已接入 SDK 并通过 Linux debug 构建。
 Android arm64 已在 Linux 上构建 Folinel APK，并在 MI 8／Android 9 验证自动加载、
-正文提取、取消与清理。其他 ABI 和原生平台仍需验证，不将这些结果描述为全部平台已经可运行。
+正文提取、取消与清理。Windows x64 已通过 GitHub CI 的独立 SDK 构建与离线集成运行。
+其他 ABI 和平台的覆盖范围以项目的 `docs/ci-validation.md` 为准，不宣称全部平台已可运行。
 
 普通使用不传 `nativeLibraryPath`；该参数仅供显式加载开发镜像。
 
@@ -60,3 +61,15 @@ dart run tool/ffigen.dart
 JDK、固定 Rust 工具链及 Android 标准库目标；Android 目标的 rquickjs C 绑定在构建时
 通过 bindgen 生成，主机还需可发现的 libclang。SDK 不要求用户手动复制 `.so`。
 构建验证与手机验证范围记录在项目的 `docs/android-build.md`。
+
+## Windows 构建兼容
+
+`native_toolchain_rust` 1.1.1 的依赖路径转换不能处理 Windows 的 `\\?\` 前缀。
+Windows hook 使用 Cargo 公开的 `build.dep-info-basedir` 配置，将 workspace 的 verbatim
+依赖路径写成相对路径，然后通过 Hooks 的公开输出 API 解析回原文件的绝对 URI。
+不修改任何 rustflags，仍复用 FRB builder 并保留其资产及依赖追踪；其他平台不启用
+这项适配。仓库的 `.gitattributes` 同时禁止 `resources/bootstrap/` 自动转换换行，避免
+Windows checkout 改写内置资源字节、使 SHA-256 校验失败。
+
+Windows x64 CI 已通过资源哈希、6 项路径回归、原生库／正常应用构建和应用集成运行；
+没有访问真实站点或验证 Windows arm64，详细结果见项目的 `docs/ci-validation.md`。

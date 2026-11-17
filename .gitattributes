@@ -1,0 +1,2 @@
+# 内置生成资源按原始字节计算 SHA-256；禁止 Windows Git 自动转换换行。
+resources/bootstrap/** -text
